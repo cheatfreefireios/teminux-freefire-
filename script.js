@@ -5,16 +5,10 @@ const readBtn = document.getElementById('readBtn');
 
 let isProcessing = false;
 
-// Đóng modal thông báo và focus vào input
+// Đóng bảng thông báo khi ấn nút [ ĐÃ ĐỌC ]
 readBtn.addEventListener('click', () => {
     noticeModal.style.display = 'none';
     input.focus();
-});
-
-document.addEventListener('click', (e) => {
-    if (noticeModal.style.display === 'none') {
-        input.focus();
-    }
 });
 
 const commands = {
