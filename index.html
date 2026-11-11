@@ -21,10 +21,51 @@
     </div>
 </div>
 
+<!-- Modal Đăng Nhập Admin (Viền đỏ) -->
+<div class="modal-overlay" id="adminAuthModal" style="display: none;">
+    <div class="modal-box admin-box">
+        <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ ADMIN LOGIN ]</div>
+        <div class="admin-form">
+            <input type="text" id="adminUser" placeholder="Tên đăng nhập..." autocomplete="off">
+            <input type="password" id="adminPass" placeholder="Mật khẩu...">
+            <div id="authError" class="auth-error"></div>
+            <div class="admin-btn-group">
+                <button class="admin-btn" id="loginBtn">ĐĂNG NHẬP</button>
+                <button class="admin-btn cancel" id="cancelLoginBtn">HỦY</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Quản Lý Mã Device (Bảng Admin) -->
+<div class="modal-overlay" id="adminPanelModal" style="display: none;">
+    <div class="modal-box admin-box">
+        <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ SYSTEM CODE MANAGER ]</div>
+        <div class="admin-form">
+            <p style="font-size: 11px; color: #aa2222; margin-bottom: 8px;">KÍCH HOẠT / TẠO MÃ ROOTVER ONLINE</p>
+            <input type="text" id="deviceCodeInput" placeholder="Nhập mã thiết bị/mã kích hoạt...">
+            <div id="adminActionMsg" style="font-size: 12px; margin-bottom: 8px;"></div>
+            <div class="admin-btn-group">
+                <button class="admin-btn" id="activateCodeBtn">KÍCH HOẠT MÃ</button>
+                <button class="admin-btn cancel" id="closeAdminBtn">ĐÓNG</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terminal Wrapper -->
 <div class="terminal-container">
     <div class="terminal-header">
-        <div><span class="status-dot"></span>TERMINUX VIP // RED EDITION</div>
-        <div>v4.0.9 [ROOT]</div>
+        <div class="header-left">
+            <span class="status-dot"></span>TERMINUX VIP // RED EDITION
+        </div>
+        <div class="header-right">
+            <span>v4.0.9 [ROOT]</span>
+            <!-- Avatar vừa góc phải (Nhấn giữ 3s để vào Admin) -->
+            <div class="avatar-box" id="avatarTrigger" title="Nhấn giữ 3s để mở Admin">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=TDZ_9" alt="Avatar">
+            </div>
+        </div>
     </div>
     
     <div class="terminal-body" id="output">
@@ -49,6 +90,25 @@
         <input type="text" class="cmd-input" id="cmdInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     </div>
 </div>
+
+<!-- SDK Firebase v13 Module -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBbakrOVPpA2gEtVAJJ--yxZi8N7iGg8R0",
+    authDomain: "dung-online.firebaseapp.com",
+    projectId: "dung-online",
+    storageBucket: "dung-online.firebasestorage.app",
+    messagingSenderId: "544119334753",
+    appId: "1:544119334753:web:813f1ec13c4415e841c720",
+    measurementId: "G-M40B1EE5FV"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 
 <script src="script.js"></script>
 </body>
