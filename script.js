@@ -19,33 +19,31 @@ const adminActionMsg = document.getElementById('adminActionMsg');
 let isProcessing = false;
 let isRootVerActivated = false;
 
-// Đóng bảng thông báo ban đầu
 readBtn.addEventListener('click', () => {
     noticeModal.style.display = 'none';
     input.focus();
 });
 
-// Xử lý kéo thả và giữ 3s mở Admin cho Avatar nổi
-let pressTimer;
+// Xử lý kéo thả chuẩn cho Avatar Nổi
+let pressTimer = null;
 let isDragging = false;
-let startX, startY, initialX, initialY;
+let startX = 0, startY = 0;
+let initialX = 0, initialY = 0;
 let hasMoved = false;
 
-function startPress(e) {
-    hasMoved = false;
+function handleStart(e) {
     isDragging = true;
-    
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    
-    startX = clientX;
-    startY = clientY;
-    
+    hasMoved = false;
+
+    const event = e.touches ? e.touches[0] : e;
+    startX = event.clientX;
+    startY = event.clientY;
+
     const rect = avatarTrigger.getBoundingClientRect();
     initialX = rect.left;
     initialY = rect.top;
 
-    // Đếm ngược 3 giây để mở Admin
+    // Giữ 3 giây để mở Đăng nhập Admin
     pressTimer = setTimeout(() => {
         if (!hasMoved) {
             adminAuthModal.style.display = 'flex';
@@ -56,47 +54,47 @@ function startPress(e) {
     }, 3000);
 }
 
-function onDrag(e) {
+function handleMove(e) {
     if (!isDragging) return;
-    
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    
-    const dx = clientX - startX;
-    const dy = clientY - startY;
 
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+    const event = e.touches ? e.touches[0] : e;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
         hasMoved = true;
-        clearTimeout(pressTimer); // Hủy mở admin nếu đang kéo đi chỗ khác
+        clearTimeout(pressTimer); // Hủy giữ nếu tay di chuyển
     }
 
-    let newX = initialX + dx;
-    let newY = initialY + dy;
+    if (hasMoved) {
+        let newX = initialX + dx;
+        let newY = initialY + dy;
 
-    // Giới hạn trong khung màn hình
-    const maxX = window.innerWidth - avatarTrigger.offsetWidth;
-    const maxY = window.innerHeight - avatarTrigger.offsetHeight;
+        const maxX = window.innerWidth - avatarTrigger.offsetWidth;
+        const maxY = window.innerHeight - avatarTrigger.offsetHeight;
 
-    newX = Math.max(0, Math.min(newX, maxX));
-    newY = Math.max(0, Math.min(newY, maxY));
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
 
-    avatarTrigger.style.left = `${newX}px`;
-    avatarTrigger.style.top = `${newY}px`;
-    avatarTrigger.style.right = 'auto'; // Hủy neo bên phải
+        avatarTrigger.style.left = `${newX}px`;
+        avatarTrigger.style.top = `${newY}px`;
+        avatarTrigger.style.right = 'auto'; // Bỏ thuộc tính right để bám theo left
+    }
 }
 
-function endPress() {
+function handleEnd() {
     isDragging = false;
     clearTimeout(pressTimer);
 }
 
-avatarTrigger.addEventListener('mousedown', startPress);
-document.addEventListener('mousemove', onDrag);
-document.addEventListener('mouseup', endPress);
+// Đăng ký sự kiện chuột & cảm ứng
+avatarTrigger.addEventListener('mousedown', handleStart);
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('mouseup', handleEnd);
 
-avatarTrigger.addEventListener('touchstart', startPress);
-document.addEventListener('touchmove', onDrag);
-document.addEventListener('touchend', endPress);
+avatarTrigger.addEventListener('touchstart', handleStart, { passive: false });
+window.addEventListener('touchmove', handleMove, { passive: false });
+window.addEventListener('touchend', handleEnd);
 
 // Đăng nhập Admin
 loginBtn.addEventListener('click', () => {
