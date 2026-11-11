@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TERMINUX VIP CLI - RED EDITION</title>
+    <!-- Nhúng file CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="terminal-container">
+    <div class="terminal-header">
+        <div><span class="status-dot"></span>TERMINUX VIP // RED EDITION</div>
+        <div>v4.0.9 [ROOT]</div>
+    </div>
+    
+    <div class="terminal-body" id="output">
+        <div class="banner">
+████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗██╗  ██╗
+╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██║  ██║
+   ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║██║  ██║
+   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██║  ██║
+   ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║╚█████╔╝
+   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝ ╚════╝ 
+        </div>
+        <div class="line dim">===================================================</div>
+        <div class="line info">[+] System: Web Terminal Emulation Engine</div>
+        <div class="line info">[+] Status: Secure Socket Initialized</div>
+        <div class="line dim">===================================================</div>
+        <div class="line system">Gõ <span style="color: var(--border-red); font-weight: bold;">help</span> để xem danh sách câu lệnh hệ thống.</div>
+        <div class="line dim">---------------------------------------------------</div>
+    </div>
+
+    <div class="input-line">
+        <span class="prompt">root@terminux:~#</span>
+        <input type="text" class="cmd-input" id="cmdInput" autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+</div>
+
+<!-- Nhúng file JS -->
+<script src="script.js"></script>
+</body>
+</html>
