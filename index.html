@@ -4,10 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TERMINUX VIP CLI - RED EDITION</title>
-    <!-- Nhúng file CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- Bảng thông báo Modal viền xanh lá -->
+<div class="modal-overlay" id="noticeModal">
+    <div class="modal-box">
+        <div class="modal-title">[ SYSTEM NOTICE ]</div>
+        <div class="modal-content">
+            <p>Menu được tạo bởi <strong>TDZ_9</strong></p>
+            <p>Được lấy ý tưởng từ Termux</p>
+            <p style="color: #66ff99; margin-top: 10px; font-weight: bold;">TDZ X bedeltaday</p>
+        </div>
+        <button class="modal-btn" id="readBtn">[ ĐÃ ĐỌC ]</button>
+    </div>
+</div>
 
 <div class="terminal-container">
     <div class="terminal-header">
@@ -34,11 +46,10 @@
 
     <div class="input-line">
         <span class="prompt">root@terminux:~#</span>
-        <input type="text" class="cmd-input" id="cmdInput" autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input type="text" class="cmd-input" id="cmdInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     </div>
 </div>
 
-<!-- Nhúng file JS -->
 <script src="script.js"></script>
 </body>
 </html>
