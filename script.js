@@ -1,9 +1,21 @@
 const output = document.getElementById('output');
 const input = document.getElementById('cmdInput');
+const noticeModal = document.getElementById('noticeModal');
+const readBtn = document.getElementById('readBtn');
+
 let isProcessing = false;
 
-window.onload = () => { input.focus(); };
-document.addEventListener('click', () => { input.focus(); });
+// Đóng modal thông báo và focus vào input
+readBtn.addEventListener('click', () => {
+    noticeModal.style.display = 'none';
+    input.focus();
+});
+
+document.addEventListener('click', (e) => {
+    if (noticeModal.style.display === 'none') {
+        input.focus();
+    }
+});
 
 const commands = {
     'help': `
