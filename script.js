@@ -3,14 +3,93 @@ const input = document.getElementById('cmdInput');
 const noticeModal = document.getElementById('noticeModal');
 const readBtn = document.getElementById('readBtn');
 
-let isProcessing = false;
+const avatarTrigger = document.getElementById('avatarTrigger');
+const adminAuthModal = document.getElementById('adminAuthModal');
+const adminPanelModal = document.getElementById('adminPanelModal');
+const loginBtn = document.getElementById('loginBtn');
+const cancelLoginBtn = document.getElementById('cancelLoginBtn');
+const closeAdminBtn = document.getElementById('closeAdminBtn');
+const activateCodeBtn = document.getElementById('activateCodeBtn');
+const adminUser = document.getElementById('adminUser');
+const adminPass = document.getElementById('adminPass');
+const authError = document.getElementById('authError');
+const deviceCodeInput = document.getElementById('deviceCodeInput');
+const adminActionMsg = document.getElementById('adminActionMsg');
 
-// Đóng bảng thông báo khi ấn nút [ ĐÃ ĐỌC ]
+let isProcessing = false;
+let isRootVerActivated = false; // Trạng thái kích hoạt ROOTVER
+
+// Đóng modal thông báo ban đầu
 readBtn.addEventListener('click', () => {
     noticeModal.style.display = 'none';
     input.focus();
 });
 
+// Xử lý giữ Avatar 3 giây để mở bảng Đăng nhập Admin
+let pressTimer;
+
+function startPress() {
+    pressTimer = setTimeout(() => {
+        adminAuthModal.style.display = 'flex';
+        adminUser.value = '';
+        adminPass.value = '';
+        authError.innerText = '';
+    }, 3000); // 3 giây
+}
+
+function cancelPress() {
+    clearTimeout(pressTimer);
+}
+
+avatarTrigger.addEventListener('mousedown', startPress);
+avatarTrigger.addEventListener('mouseup', cancelPress);
+avatarTrigger.addEventListener('mouseleave', cancelPress);
+
+avatarTrigger.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startPress();
+});
+avatarTrigger.addEventListener('touchend', cancelPress);
+
+// Đăng nhập Admin
+loginBtn.addEventListener('click', () => {
+    const user = adminUser.value.trim();
+    const pass = adminPass.value.trim();
+
+    if (user === 'TDZADMIN' && pass === 'TDZ2013@') {
+        adminAuthModal.style.display = 'none';
+        adminPanelModal.style.display = 'flex';
+        adminActionMsg.innerText = '';
+    } else {
+        authError.innerText = 'Tài khoản hoặc mật khẩu không chính xác!';
+    }
+});
+
+cancelLoginBtn.addEventListener('click', () => {
+    adminAuthModal.style.display = 'none';
+    input.focus();
+});
+
+closeAdminBtn.addEventListener('click', () => {
+    adminPanelModal.style.display = 'none';
+    input.focus();
+});
+
+// Kích hoạt Mã Online trên Bảng Admin
+activateCodeBtn.addEventListener('click', () => {
+    const code = deviceCodeInput.value.trim();
+    if (code !== '') {
+        isRootVerActivated = true;
+        adminActionMsg.style.color = '#33ff77';
+        adminActionMsg.innerText = `Đã kích hoạt mã: ${code} thành công!`;
+        deviceCodeInput.value = '';
+    } else {
+        adminActionMsg.style.color = '#ff3333';
+        adminActionMsg.innerText = 'Vui lòng nhập mã hợp lệ!';
+    }
+});
+
+// Danh sách các câu lệnh
 const commands = {
     'help': `
 <div class="help-box">
@@ -23,6 +102,7 @@ const commands = {
     <div class="help-row"><span class="help-cmd">headshot</span><span class="help-desc">: Đẩy tỉ lệ trúng đầu tối đa</span></div>
     <div class="help-row"><span class="help-cmd">antenna</span><span class="help-desc">: Hiển thị đường sóng định vị ESP</span></div>
     <div class="help-row"><span class="help-cmd">bypass</span><span class="help-desc">: Kích hoạt lớp chống khóa hệ thống</span></div>
+    <div class="help-row"><span class="help-cmd">rootver</span><span class="help-desc">: Kiểm tra trạng thái ROOT thiết bị</span></div>
     <div class="help-row"><span class="help-cmd">status</span><span class="help-desc">: Kiểm tra kết nối & bản quyền</span></div>
 </div>
 `,
@@ -89,9 +169,28 @@ function handleCommand(cmd) {
         case 'bypass':
             runBypassSequence();
             break;
+        case 'rootver':
+            runRootVerCheck();
+            break;
         default:
             printLine(`<span class="line dim">bash: ${escapeHtml(cmd)}: command not found. Gõ 'help' để xem danh sách lệnh.</span>`);
     }
+}
+
+function runRootVerCheck() {
+    isProcessing = true;
+    printLine(`<span class="line info">[+] Đang kiểm tra xác minh ROOTVER thiết bị...</span>`);
+
+    setTimeout(() => {
+        if (isRootVerActivated) {
+            printLine(`<span class="line success">[✓] ROOTVER VERIFICATION: THÀNH CÔNG (SUCCESS)</span>`);
+            printLine(`<span class="line success">[+] Thiết bị đã được cấp quyền ROOT hợp lệ!</span>`);
+        } else {
+            printLine(`<span class="line dim" style="color: #ff3333;">[X] LỖI: Điện thoại của bạn không thể sử dụng mà không ROOTVER!</span>`);
+            printLine(`<span class="line info">[i] Tương tác qua Telegram để nhận mã xác minh thiết bị của bạn.</span>`);
+        }
+        isProcessing = false;
+    }, 800);
 }
 
 function runToggleScript(name, memAddr) {
