@@ -17,39 +17,86 @@ const deviceCodeInput = document.getElementById('deviceCodeInput');
 const adminActionMsg = document.getElementById('adminActionMsg');
 
 let isProcessing = false;
-let isRootVerActivated = false; // Trạng thái kích hoạt ROOTVER
+let isRootVerActivated = false;
 
-// Đóng modal thông báo ban đầu
+// Đóng bảng thông báo ban đầu
 readBtn.addEventListener('click', () => {
     noticeModal.style.display = 'none';
     input.focus();
 });
 
-// Xử lý giữ Avatar 3 giây để mở bảng Đăng nhập Admin
+// Xử lý kéo thả và giữ 3s mở Admin cho Avatar nổi
 let pressTimer;
+let isDragging = false;
+let startX, startY, initialX, initialY;
+let hasMoved = false;
 
-function startPress() {
+function startPress(e) {
+    hasMoved = false;
+    isDragging = true;
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    startX = clientX;
+    startY = clientY;
+    
+    const rect = avatarTrigger.getBoundingClientRect();
+    initialX = rect.left;
+    initialY = rect.top;
+
+    // Đếm ngược 3 giây để mở Admin
     pressTimer = setTimeout(() => {
-        adminAuthModal.style.display = 'flex';
-        adminUser.value = '';
-        adminPass.value = '';
-        authError.innerText = '';
-    }, 3000); // 3 giây
+        if (!hasMoved) {
+            adminAuthModal.style.display = 'flex';
+            adminUser.value = '';
+            adminPass.value = '';
+            authError.innerText = '';
+        }
+    }, 3000);
 }
 
-function cancelPress() {
+function onDrag(e) {
+    if (!isDragging) return;
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        hasMoved = true;
+        clearTimeout(pressTimer); // Hủy mở admin nếu đang kéo đi chỗ khác
+    }
+
+    let newX = initialX + dx;
+    let newY = initialY + dy;
+
+    // Giới hạn trong khung màn hình
+    const maxX = window.innerWidth - avatarTrigger.offsetWidth;
+    const maxY = window.innerHeight - avatarTrigger.offsetHeight;
+
+    newX = Math.max(0, Math.min(newX, maxX));
+    newY = Math.max(0, Math.min(newY, maxY));
+
+    avatarTrigger.style.left = `${newX}px`;
+    avatarTrigger.style.top = `${newY}px`;
+    avatarTrigger.style.right = 'auto'; // Hủy neo bên phải
+}
+
+function endPress() {
+    isDragging = false;
     clearTimeout(pressTimer);
 }
 
 avatarTrigger.addEventListener('mousedown', startPress);
-avatarTrigger.addEventListener('mouseup', cancelPress);
-avatarTrigger.addEventListener('mouseleave', cancelPress);
+document.addEventListener('mousemove', onDrag);
+document.addEventListener('mouseup', endPress);
 
-avatarTrigger.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    startPress();
-});
-avatarTrigger.addEventListener('touchend', cancelPress);
+avatarTrigger.addEventListener('touchstart', startPress);
+document.addEventListener('touchmove', onDrag);
+document.addEventListener('touchend', endPress);
 
 // Đăng nhập Admin
 loginBtn.addEventListener('click', () => {
