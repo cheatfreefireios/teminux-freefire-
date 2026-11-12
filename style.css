@@ -33,9 +33,32 @@ body {
     position: relative;
 }
 
-/* Avatar Nổi Cố Định Luôn Đi Theo Màn Hình */
+/* Nút mở nhanh Nhập Mã Rootver bên cạnh màn hình */
+.floating-root-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #330000;
+    color: #ff3333;
+    border: 2px solid var(--border-red);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--red-glow);
+    z-index: 999;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.floating-root-btn:hover {
+    background-color: var(--border-red);
+    color: #000;
+}
+
+/* Avatar Nổi */
 .floating-avatar {
-    position: fixed !important; /* Ép luôn dính theo màn hình */
+    position: fixed !important;
     top: 20px;
     right: 20px;
     width: 40px;
@@ -44,12 +67,11 @@ body {
     background: #000;
     cursor: grab;
     user-select: none;
-    -webkit-user-select: none;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 12px var(--red-glow);
-    z-index: 99999; /* Đẩy lên lớp cao nhất */
+    z-index: 99999;
     touch-action: none;
 }
 
@@ -124,7 +146,6 @@ body {
     font-weight: bold;
     cursor: pointer;
     box-shadow: 0 0 10px var(--green-glow);
-    border-radius: 0px;
     outline: none;
     width: 100%;
     transition: all 0.2s ease;
@@ -185,7 +206,6 @@ body {
     box-shadow: 0 0 15px var(--red-glow);
     display: flex;
     flex-direction: column;
-    border-radius: 0px;
 }
 
 .terminal-header {
