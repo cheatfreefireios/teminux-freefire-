@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<!-- Bảng thông báo Modal viền xanh lá ban đầu -->
+<!-- Bảng thông báo Modal viền xanh lá -->
 <div class="modal-overlay" id="noticeModal">
     <div class="modal-box">
         <div class="modal-title">[ SYSTEM NOTICE ]</div>
@@ -17,10 +17,11 @@
             <p>Được lấy ý tưởng từ Termux</p>
             <p style="color: #66ff99; margin-top: 10px; font-weight: bold;">TDZ X bedeltaday</p>
         </div>
-        <button class="modal-btn" id="readBtn">[ ĐÃ ĐỌC ]</button>
+        <!-- Đã thêm sự kiện trực tiếp onclick ở đây để chắc chắn tắt được -->
+        <button class="modal-btn" id="readBtn" onclick="document.getElementById('noticeModal').style.display='none';">[ ĐÃ ĐỌC ]</button>
     </div>
 </div>
-
+    
 <!-- Modal Đăng Nhập Admin (Viền đỏ) -->
 <div class="modal-overlay" id="adminAuthModal" style="display: none;">
     <div class="modal-box admin-box">
