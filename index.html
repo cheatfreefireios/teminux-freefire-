@@ -4,11 +4,328 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TERMINUX VIP CLI - RED EDITION</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --panel-bg: #0d0000;
+            --border-red: #ff0000;
+            --red-glow: #ff0000aa;
+            --text-red: #ff3333;
+            --text-dim: #aa2222;
+            --text-muted: #661111;
+            --white: #ffffff;
+
+            --border-green: #00ff66;
+            --green-glow: #00ff66aa;
+            --text-green: #33ff77;
+            --btn-green-bg: #003311;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-red);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Nút mở nhanh Key Rootver */
+        .floating-root-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #330000;
+            color: #ff3333;
+            border: 2px solid var(--border-red);
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--red-glow);
+            z-index: 999;
+            outline: none;
+        }
+
+        /* Avatar Nổi */
+        .floating-avatar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border-red);
+            background: #000;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px var(--red-glow);
+            z-index: 99999;
+        }
+
+        .floating-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
+        /* Modal Overlay - Đảm bảo z-index cao nhất và nhận click */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            width: 90%;
+            max-width: 400px;
+            background-color: #000f05;
+            border: 2px solid var(--border-green);
+            box-shadow: 0 0 25px var(--green-glow);
+            padding: 20px;
+            text-align: center;
+            color: var(--text-green);
+        }
+
+        .modal-box.admin-box {
+            background-color: #0d0000;
+            border: 2px solid var(--border-red);
+            box-shadow: 0 0 25px var(--red-glow);
+        }
+
+        .modal-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed var(--border-green);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .modal-content {
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            margin-bottom: 6px;
+        }
+
+        .modal-btn {
+            background-color: var(--btn-green-bg);
+            color: var(--text-green);
+            border: 2px solid var(--border-green);
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--green-glow);
+            outline: none;
+            width: 100%;
+            display: block;
+        }
+
+        .modal-btn:hover {
+            background-color: var(--border-green);
+            color: #000;
+        }
+
+        .admin-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-form input {
+            background: #000;
+            border: 1px solid var(--border-red);
+            color: #fff;
+            padding: 10px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .admin-btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .admin-btn {
+            flex: 1;
+            background: #330000;
+            border: 1px solid var(--border-red);
+            color: var(--text-red);
+            padding: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .admin-btn.cancel {
+            background: #1a1a1a;
+            border-color: #444;
+            color: #aaa;
+        }
+
+        .auth-error {
+            color: #ff3333;
+            font-size: 11px;
+        }
+
+        .terminal-container {
+            width: 100%;
+            max-width: 800px;
+            height: 94vh;
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-red);
+            box-shadow: 0 0 15px var(--red-glow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            background-color: #1a0000;
+            border-bottom: 2px solid var(--border-red);
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            background-color: var(--border-red);
+            box-shadow: 0 0 8px var(--border-red);
+            margin-right: 8px;
+        }
+
+        .terminal-body {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .terminal-body::-webkit-scrollbar {
+            width: 5px;
+        }
+        .terminal-body::-webkit-scrollbar-track {
+            background: #050000;
+        }
+        .terminal-body::-webkit-scrollbar-thumb {
+            background: var(--border-red);
+        }
+
+        .banner {
+            color: var(--text-red);
+            font-weight: bold;
+            white-space: pre;
+            font-size: 10px;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .line {
+            word-break: break-all;
+        }
+        .line.info { color: var(--text-red); }
+        .line.dim { color: var(--text-dim); }
+        .line.success { color: #ff6666; font-weight: bold; }
+        .line.system { color: var(--white); }
+        .line.cmd { color: #ffffff; }
+
+        .help-box {
+            border: 1px solid var(--text-muted);
+            background: #120000;
+            padding: 10px;
+            margin: 6px 0;
+        }
+
+        .help-row {
+            display: flex;
+            margin-bottom: 4px;
+        }
+
+        .help-cmd {
+            color: #ffffff;
+            font-weight: bold;
+            width: 100px;
+            flex-shrink: 0;
+        }
+
+        .help-desc {
+            color: var(--text-red);
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background-color: #120000;
+            border-top: 1px solid var(--text-muted);
+        }
+
+        .prompt {
+            color: var(--border-red);
+            font-weight: bold;
+            margin-right: 8px;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+
+        .cmd-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--white);
+            font-family: inherit;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .progress-box {
+            border: 1px solid var(--text-dim);
+            padding: 6px 10px;
+            margin: 6px 0;
+            background-color: #050000;
+        }
+    </style>
 </head>
 <body>
 
-<!-- Bảng thông báo Modal viền xanh lá -->
+<!-- Bảng thông báo Modal viền xanh lá (Dùng trực tiếp onclick để chắc chắn ăn click) -->
 <div class="modal-overlay" id="noticeModal">
     <div class="modal-box">
         <div class="modal-title">[ SYSTEM NOTICE ]</div>
@@ -17,12 +334,11 @@
             <p>Được lấy ý tưởng từ Termux</p>
             <p style="color: #66ff99; margin-top: 10px; font-weight: bold;">TDZ X bedeltaday</p>
         </div>
-        <!-- Đã thêm sự kiện trực tiếp onclick ở đây để chắc chắn tắt được -->
-        <button class="modal-btn" id="readBtn" onclick="document.getElementById('noticeModal').style.display='none';">[ ĐÃ ĐỌC ]</button>
+        <button class="modal-btn" id="readBtn" onclick="document.getElementById('noticeModal').style.display='none'; document.getElementById('cmdInput').focus();">[ ĐÃ ĐỌC ]</button>
     </div>
 </div>
-    
-<!-- Modal Đăng Nhập Admin (Viền đỏ) -->
+
+<!-- Modal Đăng Nhập Admin -->
 <div class="modal-overlay" id="adminAuthModal" style="display: none;">
     <div class="modal-box admin-box">
         <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ ADMIN LOGIN ]</div>
@@ -38,7 +354,7 @@
     </div>
 </div>
 
-<!-- Modal Quản Lý Mã (Chỉ để Tạo và Lưu mã lên Server) -->
+<!-- Modal Quản Lý Mã -->
 <div class="modal-overlay" id="adminPanelModal" style="display: none;">
     <div class="modal-box admin-box">
         <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ TẠO MÃ ROOTVER ]</div>
@@ -54,7 +370,7 @@
     </div>
 </div>
 
-<!-- Modal Nhập Mã RootVer (Dành cho người dùng kích hoạt) -->
+<!-- Modal Nhập Mã RootVer -->
 <div class="modal-overlay" id="rootverModal" style="display: none;">
     <div class="modal-box" style="border-color: #ff3333; background: #0d0000; box-shadow: 0 0 25px rgba(255,0,0,0.5);">
         <div class="modal-title" style="color: #ff3333; border-color: #ff3333;">[ KÍCH HOẠT ROOTVER ]</div>
@@ -70,12 +386,11 @@
     </div>
 </div>
 
-<!-- Avatar Nổi Di Chuyển / Giữ 3s mở Admin -->
+<!-- Avatar Nổi (Nhấn giữ 3s để mở Admin) -->
 <div class="floating-avatar" id="avatarTrigger" title="Giữ 3s để mở Admin">
     <img src="https://api.dicebear.com/7.x/bottts/svg?seed=TDZ_9" alt="Avatar">
 </div>
 
-<!-- Nút mở nhanh bảng Nhập Mã RootVer nổi trên màn hình -->
 <button class="floating-root-btn" id="openRootverBtn">KEY ROOTVER</button>
 
 <!-- Terminal Container -->
@@ -112,7 +427,7 @@
     </div>
 </div>
 
-<!-- Firebase SDK Module -->
+<!-- Firebase SDK & Logic Script -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
   import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js";
@@ -120,7 +435,7 @@
   const firebaseConfig = {
     apiKey: "AIzaSyBbakrOVPpA2gEtVAJJ--yxZi8N7iGg8R0",
     authDomain: "dung-online.firebaseapp.com",
-    databaseURL: "https://sharehub-feee9-default-rtdb.firebaseio.com", // Đã kết nối RTDB của bạn
+    databaseURL: "https://sharehub-feee9-default-rtdb.firebaseio.com",
     projectId: "dung-online",
     storageBucket: "dung-online.firebasestorage.app",
     messagingSenderId: "544119334753",
@@ -130,9 +445,304 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  window.dbRef = db; // Gắn ra biến toàn cục để script.js gọi lưu trữ
+
+  const output = document.getElementById('output');
+  const input = document.getElementById('cmdInput');
+
+  const avatarTrigger = document.getElementById('avatarTrigger');
+  const adminAuthModal = document.getElementById('adminAuthModal');
+  const adminPanelModal = document.getElementById('adminPanelModal');
+  const loginBtn = document.getElementById('loginBtn');
+  const cancelLoginBtn = document.getElementById('cancelLoginBtn');
+  const closeAdminBtn = document.getElementById('closeAdminBtn');
+  const saveCodeBtn = document.getElementById('saveCodeBtn');
+  const adminUser = document.getElementById('adminUser');
+  const adminPass = document.getElementById('adminPass');
+  const authError = document.getElementById('authError');
+  const newCodeInput = document.getElementById('newCodeInput');
+  const adminActionMsg = document.getElementById('adminActionMsg');
+
+  const openRootverBtn = document.getElementById('openRootverBtn');
+  const rootverModal = document.getElementById('rootverModal');
+  const inputUserCode = document.getElementById('inputUserCode');
+  const submitUserCodeBtn = document.getElementById('submitUserCodeBtn');
+  const closeRootverModalBtn = document.getElementById('closeRootverModalBtn');
+  const rootverMsg = document.getElementById('rootverMsg');
+
+  let isProcessing = false;
+  let isRootVerActivated = false;
+
+  openRootverBtn.addEventListener('click', () => {
+      rootverModal.style.display = 'flex';
+      inputUserCode.value = '';
+      rootverMsg.innerText = '';
+  });
+
+  closeRootverModalBtn.addEventListener('click', () => {
+      rootverModal.style.display = 'none';
+      input.focus();
+  });
+
+  submitUserCodeBtn.addEventListener('click', async () => {
+      const code = inputUserCode.value.trim();
+      if (!code) {
+          rootverMsg.style.color = '#ff3333';
+          rootverMsg.innerText = 'Vui lòng nhập mã!';
+          return;
+      }
+
+      rootverMsg.style.color = '#ffaa33';
+      rootverMsg.innerText = 'Đang kiểm tra mã trên máy chủ...';
+
+      try {
+          const dbRef = ref(db);
+          const snapshot = await get(child(dbRef, 'rootver_codes/' + code));
+          
+          if (snapshot.exists()) {
+              isRootVerActivated = true;
+              rootverMsg.style.color = '#33ff77';
+              rootverMsg.innerText = 'Kích hoạt ROOTVER thành công!';
+              setTimeout(() => {
+                  rootverModal.style.display = 'none';
+                  printLine(`<span class="line success">[✓] ROOTVER VERIFICATION: THÀNH CÔNG (SUCCESS)</span>`);
+                  input.focus();
+              }, 1000);
+          } else {
+              rootverMsg.style.color = '#ff3333';
+              rootverMsg.innerText = 'Mã không tồn tại hoặc không hợp lệ!';
+          }
+      } catch (error) {
+          rootverMsg.style.color = '#ff3333';
+          rootverMsg.innerText = 'Lỗi kết nối máy chủ!';
+      }
+  });
+
+  let pressTimer = null;
+  avatarTrigger.addEventListener('click', () => {
+      // Bấm nhanh mở nhanh bảng admin test cho dễ, hoặc giữ 3s tùy bạn
+  });
+
+  let holdTimer;
+  avatarTrigger.addEventListener('mousedown', () => {
+      holdTimer = setTimeout(() => {
+          adminAuthModal.style.display = 'flex';
+          adminUser.value = '';
+          adminPass.value = '';
+          authError.innerText = '';
+      }, 3000);
+  });
+  avatarTrigger.addEventListener('mouseup', () => clearTimeout(holdTimer));
+  avatarTrigger.addEventListener('touchstart', () => {
+      holdTimer = setTimeout(() => {
+          adminAuthModal.style.display = 'flex';
+          adminUser.value = '';
+          adminPass.value = '';
+          authError.innerText = '';
+      }, 3000);
+  });
+  avatarTrigger.addEventListener('touchend', () => clearTimeout(holdTimer));
+
+  loginBtn.addEventListener('click', () => {
+      if (adminUser.value.trim() === 'TDZADMIN' && adminPass.value.trim() === 'TDZ2013@') {
+          adminAuthModal.style.display = 'none';
+          adminPanelModal.style.display = 'flex';
+          adminActionMsg.innerText = '';
+      } else {
+          authError.innerText = 'Sai tài khoản hoặc mật khẩu!';
+      }
+  });
+
+  cancelLoginBtn.addEventListener('click', () => { adminAuthModal.style.display = 'none'; input.focus(); });
+  closeAdminBtn.addEventListener('click', () => { adminPanelModal.style.display = 'none'; input.focus(); });
+
+  saveCodeBtn.addEventListener('click', async () => {
+      const code = newCodeInput.value.trim();
+      if (!code) {
+          adminActionMsg.style.color = '#ff3333';
+          adminActionMsg.innerText = 'Vui lòng nhập mã cần tạo!';
+          return;
+      }
+
+      adminActionMsg.style.color = '#ffaa33';
+      adminActionMsg.innerText = 'Đang lưu mã lên máy chủ...';
+
+      try {
+          await set(ref(db, 'rootver_codes/' + code), {
+              created_at: new Date().toISOString(),
+              status: 'active'
+          });
+          adminActionMsg.style.color = '#33ff77';
+          adminActionMsg.innerText = `Đã tạo và lưu mã [${code}] lên server thành công!`;
+          newCodeInput.value = '';
+      } catch (error) {
+          adminActionMsg.style.color = '#ff3333';
+          adminActionMsg.innerText = 'Lỗi lưu mã: ' + error.message;
+      }
+  });
+
+  const commands = {
+      'help': `
+<div class="help-box">
+    <div class="line system" style="margin-bottom: 6px; border-bottom: 1px solid var(--text-muted); padding-bottom: 4px;">DANH SÁCH LỆNH HỆ THỐNG VIP:</div>
+    <div class="help-row"><span class="help-cmd">help</span><span class="help-desc">: Xem bảng danh sách lệnh</span></div>
+    <div class="help-row"><span class="help-cmd">clear</span><span class="help-desc">: Làm sạch màn hình terminal</span></div>
+    <div class="help-row"><span class="help-cmd">scan</span><span class="help-desc">: Quét bộ nhớ RAM & tiến trình game</span></div>
+    <div class="help-row"><span class="help-cmd">inject</span><span class="help-desc">: Chạy nạp payload vào trò chơi</span></div>
+    <div class="help-row"><span class="help-cmd">aimbot</span><span class="help-desc">: Bật tính năng khóa mục tiêu</span></div>
+    <div class="help-row"><span class="help-cmd">headshot</span><span class="help-desc">: Đẩy tỉ lệ trúng đầu tối đa</span></div>
+    <div class="help-row"><span class="help-cmd">antenna</span><span class="help-desc">: Hiển thị đường sóng định vị ESP</span></div>
+    <div class="help-row"><span class="help-cmd">bypass</span><span class="help-desc">: Kích hoạt lớp chống khóa hệ thống</span></div>
+    <div class="help-row"><span class="help-cmd">rootver</span><span class="help-desc">: Kiểm tra trạng thái ROOT thiết bị</span></div>
+    <div class="help-row"><span class="help-cmd">status</span><span class="help-desc">: Kiểm tra kết nối & bản quyền</span></div>
+</div>
+`,
+      'status': `
+<span class="line info">[SYSTEM STATUS]</span>
+  - Security Guard : <span class="line success">BYPASSED</span>
+  - Memory Offset  : <span class="line success">READY (0x7F)</span>
+  - Latency        : <span class="line info">12ms</span>
+  - License Status : <span class="line success">VIP LIFETIME</span>
+`
+  };
+
+  input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+          const cmd = input.value.trim().toLowerCase();
+          if (cmd === '' || isProcessing) return;
+
+          printLine(`<span class="prompt">root@terminux:~#</span> <span class="line cmd">${escapeHtml(input.value)}</span>`);
+          input.value = '';
+
+          handleCommand(cmd);
+      }
+  });
+
+  function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function printLine(htmlText) {
+      const div = document.createElement('div');
+      div.className = 'line';
+      div.innerHTML = htmlText;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+  }
+
+  function handleCommand(cmd) {
+      if (cmd === 'clear') {
+          output.innerHTML = '';
+          return;
+      }
+
+      if (commands[cmd]) {
+          printLine(commands[cmd]);
+          return;
+      }
+
+      switch(cmd) {
+          case 'scan':
+              runScanSequence();
+              break;
+          case 'inject':
+              runInjectSequence();
+              break;
+          case 'aimbot':
+              runToggleScript('AIMBOT LOCK 100%', '0x7FFF90A1');
+              break;
+          case 'headshot':
+              runToggleScript('HEADSHOT RATE 99.9%', '0x8A00F210');
+              break;
+          case 'antenna':
+              runToggleScript('ESP ANTENNA LOCATION', '0x12FF08B4');
+              break;
+          case 'bypass':
+              runBypassSequence();
+              break;
+          case 'rootver':
+              runRootVerCheck();
+              break;
+          default:
+              printLine(`<span class="line dim">bash: ${escapeHtml(cmd)}: command not found. Gõ 'help' để xem danh sách lệnh.</span>`);
+      }
+  }
+
+  function runRootVerCheck() {
+      isProcessing = true;
+      printLine(`<span class="line info">[+] Đang kiểm tra xác minh ROOTVER thiết bị...</span>`);
+
+      setTimeout(() => {
+          if (isRootVerActivated) {
+              printLine(`<span class="line success">[✓] ROOTVER VERIFICATION: THÀNH CÔNG (SUCCESS)</span>`);
+              printLine(`<span class="line success">[+] Thiết bị đã được cấp quyền ROOT hợp lệ!</span>`);
+          } else {
+              printLine(`<span class="line dim" style="color: #ff3333;">[X] LỖI: Điện thoại của bạn không thể sử dụng mà không ROOTVER!</span>`);
+              printLine(`<span class="line info">[i] Bấm nút 'KEY ROOTVER' góc dưới màn hình hoặc tương tác Telegram để nhập mã.</span>`);
+          }
+          isProcessing = false;
+      }, 800);
+  }
+
+  function runToggleScript(name, memAddr) {
+      isProcessing = true;
+      printLine(`<span class="line info">[+] Đang kích hoạt: ${name}...</span>`);
+      setTimeout(() => { printLine(`<span class="line dim">[>] Ghi đè địa chỉ bộ nhớ ${memAddr}...</span>`); }, 350);
+      setTimeout(() => {
+          printLine(`<span class="line success">[✓] THÀNH CÔNG: ${name} [ACTIVE]</span>`);
+          isProcessing = false;
+      }, 800);
+  }
+
+  function runScanSequence() {
+      isProcessing = true;
+      printLine(`<span class="line info">[+] Đang quét tiến trình hệ thống...</span>`);
+      const steps = [
+          `[1/3] Quét PID tiến trình... <span class="line success">FOUND (PID: 8841)</span>`,
+          `[2/3] Đọc offset Framework... <span class="line success">OK</span>`,
+          `[3/3] Đã phát hiện 50 mục tiêu trong phạm vi!`
+      ];
+      steps.forEach((step, index) => {
+          setTimeout(() => {
+              printLine(`<span class="line dim">${step}</span>`);
+              if (index === steps.length - 1) isProcessing = false;
+          }, (index + 1) * 450);
+      });
+  }
+
+  function runBypassSequence() {
+      isProcessing = true;
+      printLine(`<span class="line info">[+] Đang bypass cơ chế Anti-Cheat...</span>`);
+      setTimeout(() => printLine(`<span class="line dim">[>] Xóa logs hệ thống...</span>`), 300);
+      setTimeout(() => printLine(`<span class="line dim">[>] Chặn gói tin gởi về Server...</span>`), 700);
+      setTimeout(() => {
+          printLine(`<span class="line success">[✓] ANTI-BAN ACTIVATED - SAFE 100%</span>`);
+          isProcessing = false;
+      }, 1200);
+  }
+
+  function runInjectSequence() {
+      isProcessing = true;
+      printLine(`<span class="line info">[+] Đang inject Payload...</span>`);
+      const progressDiv = document.createElement('div');
+      progressDiv.className = 'progress-box';
+      output.appendChild(progressDiv);
+
+      let progress = 0;
+      const interval = setInterval(() => {
+          progress += 10;
+          const blocks = '█'.repeat(progress / 10);
+          const spaces = ' '.repeat(10 - (progress / 10));
+          progressDiv.innerHTML = `<span class="line info">Injecting: [${blocks}${spaces}] ${progress}%</span>`;
+          output.scrollTop = output.scrollHeight;
+
+          if (progress >= 100) {
+              clearInterval(interval);
+              printLine(`<span class="line success">[✓] INJECT SUCCESSFUL! VIP MENU đã sẵn sàng.</span>`);
+              isProcessing = false;
+          }
+      }, 120);
+  }
 </script>
 
-<script src="script.js"></script>
 </body>
 </html>
