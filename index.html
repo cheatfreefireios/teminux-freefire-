@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<!-- Bảng thông báo Modal viền xanh lá -->
+<!-- Bảng thông báo Modal viền xanh lá ban đầu -->
 <div class="modal-overlay" id="noticeModal">
     <div class="modal-box">
         <div class="modal-title">[ SYSTEM NOTICE ]</div>
@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<!-- Modal Đăng Nhập Admin -->
+<!-- Modal Đăng Nhập Admin (Viền đỏ) -->
 <div class="modal-overlay" id="adminAuthModal" style="display: none;">
     <div class="modal-box admin-box">
         <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ ADMIN LOGIN ]</div>
@@ -37,26 +37,45 @@
     </div>
 </div>
 
-<!-- Modal Quản Lý Mã (Bảng Admin) -->
+<!-- Modal Quản Lý Mã (Chỉ để Tạo và Lưu mã lên Server) -->
 <div class="modal-overlay" id="adminPanelModal" style="display: none;">
     <div class="modal-box admin-box">
-        <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ SYSTEM CODE MANAGER ]</div>
+        <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ TẠO MÃ ROOTVER ]</div>
         <div class="admin-form">
-            <p style="font-size: 11px; color: #aa2222; margin-bottom: 8px;">KÍCH HOẠT / TẠO MÃ ROOTVER ONLINE</p>
-            <input type="text" id="deviceCodeInput" placeholder="Nhập mã thiết bị/mã kích hoạt...">
-            <div id="adminActionMsg" style="font-size: 12px; margin-bottom: 8px;"></div>
+            <p style="font-size: 11px; color: #aa2222; margin-bottom: 8px;">Tạo mã mới và lưu trực tiếp lên máy chủ Firebase</p>
+            <input type="text" id="newCodeInput" placeholder="Nhập mã muốn tạo (Ví dụ: TDZ-VIP-888)...">
+            <div id="adminActionMsg" style="font-size: 12px; margin-bottom: 8px; word-break: break-all;"></div>
             <div class="admin-btn-group">
-                <button class="admin-btn" id="activateCodeBtn">KÍCH HOẠT MÃ</button>
+                <button class="admin-btn" id="saveCodeBtn">TẠO & LƯU MÃ</button>
                 <button class="admin-btn cancel" id="closeAdminBtn">ĐÓNG</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Avatar Nổi (Cố định vị trí trên màn hình + Giữ 3s mở Admin) -->
+<!-- Modal Nhập Mã RootVer (Dành cho người dùng kích hoạt) -->
+<div class="modal-overlay" id="rootverModal" style="display: none;">
+    <div class="modal-box" style="border-color: #ff3333; background: #0d0000; box-shadow: 0 0 25px rgba(255,0,0,0.5);">
+        <div class="modal-title" style="color: #ff3333; border-color: #ff3333;">[ KÍCH HOẠT ROOTVER ]</div>
+        <div class="admin-form">
+            <p style="font-size: 11px; color: #ff9999; margin-bottom: 8px;">Nhập mã bản quyền ROOTVER của bạn để mở khóa hệ thống:</p>
+            <input type="text" id="inputUserCode" placeholder="Dán mã vào đây..." style="border-color: #ff3333;">
+            <div id="rootverMsg" style="font-size: 12px; margin-bottom: 8px;"></div>
+            <div class="admin-btn-group">
+                <button class="admin-btn" id="submitUserCodeBtn" style="background: #330000; border-color: #ff3333; color: #ff3333;">XÁC THỰC</button>
+                <button class="admin-btn cancel" id="closeRootverModalBtn">HỦY</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avatar Nổi Di Chuyển / Giữ 3s mở Admin -->
 <div class="floating-avatar" id="avatarTrigger" title="Giữ 3s để mở Admin">
     <img src="https://api.dicebear.com/7.x/bottts/svg?seed=TDZ_9" alt="Avatar">
 </div>
+
+<!-- Nút mở nhanh bảng Nhập Mã RootVer nổi trên màn hình -->
+<button class="floating-root-btn" id="openRootverBtn">KEY ROOTVER</button>
 
 <!-- Terminal Container -->
 <div class="terminal-container">
@@ -82,7 +101,7 @@
         <div class="line info">[+] System: Web Terminal Emulation Engine</div>
         <div class="line info">[+] Status: Secure Socket Initialized</div>
         <div class="line dim">===================================================</div>
-        <div class="line system">Gõ <span style="color: var(--border-red); font-weight: bold;">help</span> để xem danh sách câu lệnh hệ thống.</div>
+        <div class="line system">Gõ <span style="color: var(--border-red); font-weight: bold;">help</span> hoặc bấm nút <span style="color: #ff3333;">KEY ROOTVER</span> để nhập mã.</div>
         <div class="line dim">---------------------------------------------------</div>
     </div>
 
@@ -95,11 +114,12 @@
 <!-- Firebase SDK Module -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
+  import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBbakrOVPpA2gEtVAJJ--yxZi8N7iGg8R0",
     authDomain: "dung-online.firebaseapp.com",
+    databaseURL: "https://sharehub-feee9-default-rtdb.firebaseio.com", // Đã kết nối RTDB của bạn
     projectId: "dung-online",
     storageBucket: "dung-online.firebasestorage.app",
     messagingSenderId: "544119334753",
@@ -108,7 +128,8 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  const db = getDatabase(app);
+  window.dbRef = db; // Gắn ra biến toàn cục để script.js gọi lưu trữ
 </script>
 
 <script src="script.js"></script>
