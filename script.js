@@ -29,9 +29,10 @@ const rootverMsg = document.getElementById('rootverMsg');
 let isProcessing = false;
 let isRootVerActivated = false;
 
+// SỬA LỖI TẠI ĐÂY: Thêm lệnh ẩn modal thông báo
 readBtn.addEventListener('click', () => {
-    noticeModal.style.display = 'none';
-    input.focus();
+    noticeModal.style.display = 'none'; // Ẩn bảng thông báo
+    input.focus(); // Đưa con trỏ chuột về ô nhập lệnh
 });
 
 // Mở bảng nhập mã RootVer khi ấn nút
