@@ -1,3 +1,5 @@
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js";
+
 const output = document.getElementById('output');
 const input = document.getElementById('cmdInput');
 const noticeModal = document.getElementById('noticeModal');
@@ -9,12 +11,20 @@ const adminPanelModal = document.getElementById('adminPanelModal');
 const loginBtn = document.getElementById('loginBtn');
 const cancelLoginBtn = document.getElementById('cancelLoginBtn');
 const closeAdminBtn = document.getElementById('closeAdminBtn');
-const activateCodeBtn = document.getElementById('activateCodeBtn');
+const saveCodeBtn = document.getElementById('saveCodeBtn');
 const adminUser = document.getElementById('adminUser');
 const adminPass = document.getElementById('adminPass');
 const authError = document.getElementById('authError');
-const deviceCodeInput = document.getElementById('deviceCodeInput');
+const newCodeInput = document.getElementById('newCodeInput');
 const adminActionMsg = document.getElementById('adminActionMsg');
+
+// Các phần tử cho tính năng nhập mã RootVer
+const openRootverBtn = document.getElementById('openRootverBtn');
+const rootverModal = document.getElementById('rootverModal');
+const inputUserCode = document.getElementById('inputUserCode');
+const submitUserCodeBtn = document.getElementById('submitUserCodeBtn');
+const closeRootverModalBtn = document.getElementById('closeRootverModalBtn');
+const rootverMsg = document.getElementById('rootverMsg');
 
 let isProcessing = false;
 let isRootVerActivated = false;
@@ -24,7 +34,54 @@ readBtn.addEventListener('click', () => {
     input.focus();
 });
 
-// Xử lý kéo thả chuẩn cho Avatar Nổi
+// Mở bảng nhập mã RootVer khi ấn nút
+openRootverBtn.addEventListener('click', () => {
+    rootverModal.style.display = 'flex';
+    inputUserCode.value = '';
+    rootverMsg.innerText = '';
+});
+
+closeRootverModalBtn.addEventListener('click', () => {
+    rootverModal.style.display = 'none';
+    input.focus();
+});
+
+// Xử lý xác thực mã người dùng nhập với Firebase Server
+submitUserCodeBtn.addEventListener('click', async () => {
+    const code = inputUserCode.value.trim();
+    if (!code) {
+        rootverMsg.style.color = '#ff3333';
+        rootverMsg.innerText = 'Vui lòng nhập mã!';
+        return;
+    }
+
+    rootverMsg.style.color = '#ffaa33';
+    rootverMsg.innerText = 'Đang kiểm tra mã trên máy chủ...';
+
+    try {
+        const dbRef = ref(window.dbRef);
+        const snapshot = await get(child(dbRef, 'rootver_codes/' + code));
+        
+        if (snapshot.exists()) {
+            isRootVerActivated = true;
+            rootverMsg.style.color = '#33ff77';
+            rootverMsg.innerText = 'Kích hoạt ROOTVER thành công!';
+            setTimeout(() => {
+                rootverModal.style.display = 'none';
+                printLine(`<span class="line success">[✓] ROOTVER VERIFICATION: THÀNH CÔNG (SUCCESS)</span>`);
+                input.focus();
+            }, 1000);
+        } else {
+            rootverMsg.style.color = '#ff3333';
+            rootverMsg.innerText = 'Mã không tồn tại hoặc không hợp lệ!';
+        }
+    } catch (error) {
+        rootverMsg.style.color = '#ff3333';
+        rootverMsg.innerText = 'Lỗi kết nối máy chủ!';
+    }
+});
+
+// Kéo thả & Giữ 3s mở Admin qua Avatar
 let pressTimer = null;
 let isDragging = false;
 let startX = 0, startY = 0;
@@ -34,7 +91,6 @@ let hasMoved = false;
 function handleStart(e) {
     isDragging = true;
     hasMoved = false;
-
     const event = e.touches ? e.touches[0] : e;
     startX = event.clientX;
     startY = event.clientY;
@@ -43,7 +99,6 @@ function handleStart(e) {
     initialX = rect.left;
     initialY = rect.top;
 
-    // Giữ 3 giây để mở Đăng nhập Admin
     pressTimer = setTimeout(() => {
         if (!hasMoved) {
             adminAuthModal.style.display = 'flex';
@@ -56,29 +111,25 @@ function handleStart(e) {
 
 function handleMove(e) {
     if (!isDragging) return;
-
     const event = e.touches ? e.touches[0] : e;
     const dx = event.clientX - startX;
     const dy = event.clientY - startY;
 
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
         hasMoved = true;
-        clearTimeout(pressTimer); // Hủy giữ nếu tay di chuyển
+        clearTimeout(pressTimer);
     }
 
     if (hasMoved) {
         let newX = initialX + dx;
         let newY = initialY + dy;
-
         const maxX = window.innerWidth - avatarTrigger.offsetWidth;
         const maxY = window.innerHeight - avatarTrigger.offsetHeight;
-
         newX = Math.max(0, Math.min(newX, maxX));
         newY = Math.max(0, Math.min(newY, maxY));
-
         avatarTrigger.style.left = `${newX}px`;
         avatarTrigger.style.top = `${newY}px`;
-        avatarTrigger.style.right = 'auto'; // Bỏ thuộc tính right để bám theo left
+        avatarTrigger.style.right = 'auto';
     }
 }
 
@@ -87,54 +138,54 @@ function handleEnd() {
     clearTimeout(pressTimer);
 }
 
-// Đăng ký sự kiện chuột & cảm ứng
 avatarTrigger.addEventListener('mousedown', handleStart);
 window.addEventListener('mousemove', handleMove);
 window.addEventListener('mouseup', handleEnd);
-
 avatarTrigger.addEventListener('touchstart', handleStart, { passive: false });
 window.addEventListener('touchmove', handleMove, { passive: false });
 window.addEventListener('touchend', handleEnd);
 
 // Đăng nhập Admin
 loginBtn.addEventListener('click', () => {
-    const user = adminUser.value.trim();
-    const pass = adminPass.value.trim();
-
-    if (user === 'TDZADMIN' && pass === 'TDZ2013@') {
+    if (adminUser.value.trim() === 'TDZADMIN' && adminPass.value.trim() === 'TDZ2013@') {
         adminAuthModal.style.display = 'none';
         adminPanelModal.style.display = 'flex';
         adminActionMsg.innerText = '';
     } else {
-        authError.innerText = 'Tài khoản hoặc mật khẩu không chính xác!';
+        authError.innerText = 'Sai tài khoản hoặc mật khẩu!';
     }
 });
 
-cancelLoginBtn.addEventListener('click', () => {
-    adminAuthModal.style.display = 'none';
-    input.focus();
-});
+cancelLoginBtn.addEventListener('click', () => { adminAuthModal.style.display = 'none'; input.focus(); });
+closeAdminBtn.addEventListener('click', () => { adminPanelModal.style.display = 'none'; input.focus(); });
 
-closeAdminBtn.addEventListener('click', () => {
-    adminPanelModal.style.display = 'none';
-    input.focus();
-});
-
-// Kích hoạt Mã Online trên Bảng Admin
-activateCodeBtn.addEventListener('click', () => {
-    const code = deviceCodeInput.value.trim();
-    if (code !== '') {
-        isRootVerActivated = true;
-        adminActionMsg.style.color = '#33ff77';
-        adminActionMsg.innerText = `Đã kích hoạt mã: ${code} thành công!`;
-        deviceCodeInput.value = '';
-    } else {
+// Tạo và Lưu mã lên Máy chủ Firebase
+saveCodeBtn.addEventListener('click', async () => {
+    const code = newCodeInput.value.trim();
+    if (!code) {
         adminActionMsg.style.color = '#ff3333';
-        adminActionMsg.innerText = 'Vui lòng nhập mã hợp lệ!';
+        adminActionMsg.innerText = 'Vui lòng nhập mã cần tạo!';
+        return;
+    }
+
+    adminActionMsg.style.color = '#ffaa33';
+    adminActionMsg.innerText = 'Đang lưu mã lên máy chủ...';
+
+    try {
+        await set(ref(window.dbRef, 'rootver_codes/' + code), {
+            created_at: new Date().toISOString(),
+            status: 'active'
+        });
+        adminActionMsg.style.color = '#33ff77';
+        adminActionMsg.innerText = `Đã tạo và lưu mã [${code}] lên server thành công!`;
+        newCodeInput.value = '';
+    } catch (error) {
+        adminActionMsg.style.color = '#ff3333';
+        adminActionMsg.innerText = 'Lỗi lưu mã: ' + error.message;
     }
 });
 
-// Danh sách các câu lệnh
+// Các lệnh Terminal
 const commands = {
     'help': `
 <div class="help-box">
@@ -232,7 +283,7 @@ function runRootVerCheck() {
             printLine(`<span class="line success">[+] Thiết bị đã được cấp quyền ROOT hợp lệ!</span>`);
         } else {
             printLine(`<span class="line dim" style="color: #ff3333;">[X] LỖI: Điện thoại của bạn không thể sử dụng mà không ROOTVER!</span>`);
-            printLine(`<span class="line info">[i] Tương tác qua Telegram để nhận mã xác minh thiết bị của bạn.</span>`);
+            printLine(`<span class="line info">[i] Bấm nút 'KEY ROOTVER' góc dưới màn hình hoặc tương tác Telegram để nhập mã.</span>`);
         }
         isProcessing = false;
     }, 800);
@@ -241,11 +292,7 @@ function runRootVerCheck() {
 function runToggleScript(name, memAddr) {
     isProcessing = true;
     printLine(`<span class="line info">[+] Đang kích hoạt: ${name}...</span>`);
-    
-    setTimeout(() => {
-        printLine(`<span class="line dim">[>] Ghi đè địa chỉ bộ nhớ ${memAddr}...</span>`);
-    }, 350);
-
+    setTimeout(() => { printLine(`<span class="line dim">[>] Ghi đè địa chỉ bộ nhớ ${memAddr}...</span>`); }, 350);
     setTimeout(() => {
         printLine(`<span class="line success">[✓] THÀNH CÔNG: ${name} [ACTIVE]</span>`);
         isProcessing = false;
@@ -255,13 +302,11 @@ function runToggleScript(name, memAddr) {
 function runScanSequence() {
     isProcessing = true;
     printLine(`<span class="line info">[+] Đang quét tiến trình hệ thống...</span>`);
-    
     const steps = [
         `[1/3] Quét PID tiến trình... <span class="line success">FOUND (PID: 8841)</span>`,
         `[2/3] Đọc offset Framework... <span class="line success">OK</span>`,
         `[3/3] Đã phát hiện 50 mục tiêu trong phạm vi!`
     ];
-
     steps.forEach((step, index) => {
         setTimeout(() => {
             printLine(`<span class="line dim">${step}</span>`);
@@ -273,7 +318,6 @@ function runScanSequence() {
 function runBypassSequence() {
     isProcessing = true;
     printLine(`<span class="line info">[+] Đang bypass cơ chế Anti-Cheat...</span>`);
-    
     setTimeout(() => printLine(`<span class="line dim">[>] Xóa logs hệ thống...</span>`), 300);
     setTimeout(() => printLine(`<span class="line dim">[>] Chặn gói tin gởi về Server...</span>`), 700);
     setTimeout(() => {
@@ -285,7 +329,6 @@ function runBypassSequence() {
 function runInjectSequence() {
     isProcessing = true;
     printLine(`<span class="line info">[+] Đang inject Payload...</span>`);
-    
     const progressDiv = document.createElement('div');
     progressDiv.className = 'progress-box';
     output.appendChild(progressDiv);
