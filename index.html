@@ -40,23 +40,6 @@
             position: relative;
         }
 
-        /* Nút mở nhanh Key Rootver */
-        .floating-root-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #330000;
-            color: #ff3333;
-            border: 2px solid var(--border-red);
-            padding: 8px 14px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 10px var(--red-glow);
-            z-index: 999;
-            outline: none;
-        }
-
         /* Avatar Nổi */
         .floating-avatar {
             position: fixed;
@@ -82,7 +65,7 @@
             pointer-events: none;
         }
 
-        /* Modal Overlay - Đảm bảo z-index cao nhất và nhận click */
+        /* Modal Overlay Chung */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -100,57 +83,29 @@
         .modal-box {
             width: 90%;
             max-width: 400px;
-            background-color: #000f05;
-            border: 2px solid var(--border-green);
-            box-shadow: 0 0 25px var(--green-glow);
-            padding: 20px;
-            text-align: center;
-            color: var(--text-green);
-        }
-
-        .modal-box.admin-box {
             background-color: #0d0000;
             border: 2px solid var(--border-red);
             box-shadow: 0 0 25px var(--red-glow);
+            padding: 20px;
+            text-align: center;
+            color: var(--text-red);
         }
 
         .modal-title {
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 15px;
-            border-bottom: 1px dashed var(--border-green);
+            margin-bottom: 12px;
+            border-bottom: 1px dashed var(--border-red);
             padding-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         .modal-content {
-            font-size: 13px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .modal-content p {
-            margin-bottom: 6px;
-        }
-
-        .modal-btn {
-            background-color: var(--btn-green-bg);
-            color: var(--text-green);
-            border: 2px solid var(--border-green);
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 10px var(--green-glow);
-            outline: none;
-            width: 100%;
-            display: block;
-        }
-
-        .modal-btn:hover {
-            background-color: var(--border-green);
-            color: #000;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            color: #ff9999;
         }
 
         .admin-form {
@@ -166,6 +121,7 @@
             padding: 10px;
             font-size: 13px;
             outline: none;
+            text-align: center;
         }
 
         .admin-btn-group {
@@ -181,12 +137,32 @@
             padding: 10px;
             font-weight: bold;
             cursor: pointer;
+            outline: none;
         }
 
-        .admin-btn.cancel {
-            background: #1a1a1a;
-            border-color: #444;
-            color: #aaa;
+        .admin-btn:hover {
+            background: var(--border-red);
+            color: #000;
+        }
+
+        /* Nút GetKey ở đáy bảng nhập key */
+        .getkey-modal-btn {
+            width: 100%;
+            background-color: #002233;
+            border: 2px solid #00ccff;
+            color: #00ccff;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 204, 255, 0.4);
+            margin-top: 8px;
+            outline: none;
+        }
+
+        .getkey-modal-btn:hover {
+            background-color: #00ccff;
+            color: #000;
         }
 
         .auth-error {
@@ -263,7 +239,7 @@
         .line.info { color: var(--text-red); }
         .line.dim { color: var(--text-dim); }
         .line.success { color: #ff6666; font-weight: bold; }
-        .line.system { color: var(--white); }
+        .line.system { color: #ffffff; }
         .line.cmd { color: #ffffff; }
 
         .help-box {
@@ -325,73 +301,61 @@
 </head>
 <body>
 
-<!-- Bảng thông báo Modal viền xanh lá (Dùng trực tiếp onclick để chắc chắn ăn click) -->
-<div class="modal-overlay" id="noticeModal">
+<!-- 1. BẢNG NHẬP KEY (ROOTVER) HIỆN LÊN ĐẦU TIÊN KHI VÀO MENU -->
+<div class="modal-overlay" id="rootverModal">
     <div class="modal-box">
-        <div class="modal-title">[ SYSTEM NOTICE ]</div>
+        <div class="modal-title">[ YÊU CẦU XÁC THỰC KEY ]</div>
         <div class="modal-content">
             <p>Menu được tạo bởi <strong>TDZ_9</strong></p>
-            <p>Được lấy ý tưởng từ Termux</p>
-            <p style="color: #66ff99; margin-top: 10px; font-weight: bold;">TDZ X bedeltaday</p>
+            <p>Điện thoại của bạn cần <strong>ROOTVER</strong> để tiếp tục.</p>
+            <p style="color: #66ff99; margin-top: 6px;">TDZ X bedeltaday</p>
         </div>
-        <button class="modal-btn" id="readBtn" onclick="document.getElementById('noticeModal').style.display='none'; document.getElementById('cmdInput').focus();">[ ĐÃ ĐỌC ]</button>
+        <div class="admin-form">
+            <input type="text" id="inputUserCode" placeholder="Nhập mã / key bản quyền...">
+            <div id="rootverMsg" style="font-size: 11px; min-height: 15px;"></div>
+            <button class="admin-btn" id="submitUserCodeBtn" style="width: 100%;">XÁC THỰC KEY</button>
+            <!-- Nút Getkey ở đáy bảng -->
+            <button class="getkey-modal-btn" id="getKeyBtn">LẤY KEY (GETKEY)</button>
+        </div>
     </div>
 </div>
 
-<!-- Modal Đăng Nhập Admin -->
+<!-- Modal Đăng Nhập Admin (Giữ avatar 3s để mở) -->
 <div class="modal-overlay" id="adminAuthModal" style="display: none;">
-    <div class="modal-box admin-box">
-        <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ ADMIN LOGIN ]</div>
+    <div class="modal-box">
+        <div class="modal-title">[ ADMIN LOGIN ]</div>
         <div class="admin-form">
             <input type="text" id="adminUser" placeholder="Tên đăng nhập..." autocomplete="off">
             <input type="password" id="adminPass" placeholder="Mật khẩu...">
             <div id="authError" class="auth-error"></div>
             <div class="admin-btn-group">
                 <button class="admin-btn" id="loginBtn">ĐĂNG NHẬP</button>
-                <button class="admin-btn cancel" id="cancelLoginBtn">HỦY</button>
+                <button class="admin-btn" id="cancelLoginBtn" style="background: #1a1a1a; border-color: #444; color: #aaa;">HỦY</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Quản Lý Mã -->
+<!-- Modal Quản Lý & Tạo Mã (Dành cho Admin) -->
 <div class="modal-overlay" id="adminPanelModal" style="display: none;">
-    <div class="modal-box admin-box">
-        <div class="modal-title" style="color: #ff3333; border-color: #ff0000;">[ TẠO MÃ ROOTVER ]</div>
+    <div class="modal-box">
+        <div class="modal-title">[ TẠO MÃ ROOTVER ]</div>
         <div class="admin-form">
-            <p style="font-size: 11px; color: #aa2222; margin-bottom: 8px;">Tạo mã mới và lưu trực tiếp lên máy chủ Firebase</p>
-            <input type="text" id="newCodeInput" placeholder="Nhập mã muốn tạo (Ví dụ: TDZ-VIP-888)...">
-            <div id="adminActionMsg" style="font-size: 12px; margin-bottom: 8px; word-break: break-all;"></div>
-            <div class="admin-btn-group">
-                <button class="admin-btn" id="saveCodeBtn">TẠO & LƯU MÃ</button>
-                <button class="admin-btn cancel" id="closeAdminBtn">ĐÓNG</button>
+            <p style="font-size: 11px; color: #aa2222; margin-bottom: 5px;">Tạo và lưu mã mới lên Firebase</p>
+            <input type="text" id="newCodeInput" placeholder="Nhập mã (Ví dụ: TDZ-VIP-888)...">
+            <div id="adminActionMsg" style="font-size: 11px; word-break: break-all;"></div>
+            <div class="admin-btn-group" style="margin-top: 5px;">
+                <button class="admin-btn" id="saveCodeBtn">TẠO & LƯU</button>
+                <button class="admin-btn" id="closeAdminBtn" style="background: #1a1a1a; border-color: #444; color: #aaa;">ĐÓNG</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Nhập Mã RootVer -->
-<div class="modal-overlay" id="rootverModal" style="display: none;">
-    <div class="modal-box" style="border-color: #ff3333; background: #0d0000; box-shadow: 0 0 25px rgba(255,0,0,0.5);">
-        <div class="modal-title" style="color: #ff3333; border-color: #ff3333;">[ KÍCH HOẠT ROOTVER ]</div>
-        <div class="admin-form">
-            <p style="font-size: 11px; color: #ff9999; margin-bottom: 8px;">Nhập mã bản quyền ROOTVER của bạn để mở khóa hệ thống:</p>
-            <input type="text" id="inputUserCode" placeholder="Dán mã vào đây..." style="border-color: #ff3333;">
-            <div id="rootverMsg" style="font-size: 12px; margin-bottom: 8px;"></div>
-            <div class="admin-btn-group">
-                <button class="admin-btn" id="submitUserCodeBtn" style="background: #330000; border-color: #ff3333; color: #ff3333;">XÁC THỰC</button>
-                <button class="admin-btn cancel" id="closeRootverModalBtn">HỦY</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Avatar Nổi (Nhấn giữ 3s để mở Admin) -->
+<!-- Avatar Nổi (Giữ 3s mở Admin) -->
 <div class="floating-avatar" id="avatarTrigger" title="Giữ 3s để mở Admin">
     <img src="https://api.dicebear.com/7.x/bottts/svg?seed=TDZ_9" alt="Avatar">
 </div>
-
-<button class="floating-root-btn" id="openRootverBtn">KEY ROOTVER</button>
 
 <!-- Terminal Container -->
 <div class="terminal-container">
@@ -417,7 +381,7 @@
         <div class="line info">[+] System: Web Terminal Emulation Engine</div>
         <div class="line info">[+] Status: Secure Socket Initialized</div>
         <div class="line dim">===================================================</div>
-        <div class="line system">Gõ <span style="color: var(--border-red); font-weight: bold;">help</span> hoặc bấm nút <span style="color: #ff3333;">KEY ROOTVER</span> để nhập mã.</div>
+        <div class="line system">Xác thực key thành công! Gõ <span style="color: var(--border-red); font-weight: bold;">help</span> để xem lệnh.</div>
         <div class="line dim">---------------------------------------------------</div>
     </div>
 
@@ -462,27 +426,22 @@
   const newCodeInput = document.getElementById('newCodeInput');
   const adminActionMsg = document.getElementById('adminActionMsg');
 
-  const openRootverBtn = document.getElementById('openRootverBtn');
   const rootverModal = document.getElementById('rootverModal');
   const inputUserCode = document.getElementById('inputUserCode');
   const submitUserCodeBtn = document.getElementById('submitUserCodeBtn');
-  const closeRootverModalBtn = document.getElementById('closeRootverModalBtn');
+  const getKeyBtn = document.getElementById('getKeyBtn');
   const rootverMsg = document.getElementById('rootverMsg');
 
   let isProcessing = false;
   let isRootVerActivated = false;
 
-  openRootverBtn.addEventListener('click', () => {
-      rootverModal.style.display = 'flex';
-      inputUserCode.value = '';
-      rootverMsg.innerText = '';
+  // Xử lý nút GetKey (Bạn có thể thay alert bằng window.location.href = 'link_cua_ban')
+  getKeyBtn.addEventListener('click', () => {
+      alert("Chuyển hướng đến trang GetKey... (Bạn hãy thay link của bạn vào đây)");
+      // window.location.href = "https://link-getkey-cua-ban.com";
   });
 
-  closeRootverModalBtn.addEventListener('click', () => {
-      rootverModal.style.display = 'none';
-      input.focus();
-  });
-
+  // Xác thực key người dùng nhập
   submitUserCodeBtn.addEventListener('click', async () => {
       const code = inputUserCode.value.trim();
       if (!code) {
@@ -492,7 +451,7 @@
       }
 
       rootverMsg.style.color = '#ffaa33';
-      rootverMsg.innerText = 'Đang kiểm tra mã trên máy chủ...';
+      rootverMsg.innerText = 'Đang kiểm tra máy chủ...';
 
       try {
           const dbRef = ref(db);
@@ -501,15 +460,14 @@
           if (snapshot.exists()) {
               isRootVerActivated = true;
               rootverMsg.style.color = '#33ff77';
-              rootverMsg.innerText = 'Kích hoạt ROOTVER thành công!';
+              rootverMsg.innerText = 'Xác thực thành công! Đang vào menu...';
               setTimeout(() => {
                   rootverModal.style.display = 'none';
-                  printLine(`<span class="line success">[✓] ROOTVER VERIFICATION: THÀNH CÔNG (SUCCESS)</span>`);
                   input.focus();
-              }, 1000);
+              }, 800);
           } else {
               rootverMsg.style.color = '#ff3333';
-              rootverMsg.innerText = 'Mã không tồn tại hoặc không hợp lệ!';
+              rootverMsg.innerText = 'Mã không tồn tại hoặc sai!';
           }
       } catch (error) {
           rootverMsg.style.color = '#ff3333';
@@ -517,11 +475,7 @@
       }
   });
 
-  let pressTimer = null;
-  avatarTrigger.addEventListener('click', () => {
-      // Bấm nhanh mở nhanh bảng admin test cho dễ, hoặc giữ 3s tùy bạn
-  });
-
+  // Giữ avatar 3s mở bảng Admin
   let holdTimer;
   avatarTrigger.addEventListener('mousedown', () => {
       holdTimer = setTimeout(() => {
@@ -552,8 +506,8 @@
       }
   });
 
-  cancelLoginBtn.addEventListener('click', () => { adminAuthModal.style.display = 'none'; input.focus(); });
-  closeAdminBtn.addEventListener('click', () => { adminPanelModal.style.display = 'none'; input.focus(); });
+  cancelLoginBtn.addEventListener('click', () => { adminAuthModal.style.display = 'none'; });
+  closeAdminBtn.addEventListener('click', () => { adminPanelModal.style.display = 'none'; });
 
   saveCodeBtn.addEventListener('click', async () => {
       const code = newCodeInput.value.trim();
@@ -572,11 +526,11 @@
               status: 'active'
           });
           adminActionMsg.style.color = '#33ff77';
-          adminActionMsg.innerText = `Đã tạo và lưu mã [${code}] lên server thành công!`;
+          adminActionMsg.innerText = `Đã lưu mã [${code}] thành công!`;
           newCodeInput.value = '';
       } catch (error) {
           adminActionMsg.style.color = '#ff3333';
-          adminActionMsg.innerText = 'Lỗi lưu mã: ' + error.message;
+          adminActionMsg.innerText = 'Lỗi: ' + error.message;
       }
   });
 
@@ -669,18 +623,8 @@
 
   function runRootVerCheck() {
       isProcessing = true;
-      printLine(`<span class="line info">[+] Đang kiểm tra xác minh ROOTVER thiết bị...</span>`);
-
-      setTimeout(() => {
-          if (isRootVerActivated) {
-              printLine(`<span class="line success">[✓] ROOTVER VERIFICATION: THÀNH CÔNG (SUCCESS)</span>`);
-              printLine(`<span class="line success">[+] Thiết bị đã được cấp quyền ROOT hợp lệ!</span>`);
-          } else {
-              printLine(`<span class="line dim" style="color: #ff3333;">[X] LỖI: Điện thoại của bạn không thể sử dụng mà không ROOTVER!</span>`);
-              printLine(`<span class="line info">[i] Bấm nút 'KEY ROOTVER' góc dưới màn hình hoặc tương tác Telegram để nhập mã.</span>`);
-          }
-          isProcessing = false;
-      }, 800);
+      printLine(`<span class="line info">[+] Trạng thái ROOTVER: Đã xác thực thành công (Active).</span>`);
+      isProcessing = false;
   }
 
   function runToggleScript(name, memAddr) {
