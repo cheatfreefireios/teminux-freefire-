@@ -105,12 +105,18 @@ function initAppAuth() {
     `;
     document.body.insertAdjacentHTML("beforeend", gateHTML);
 
-    // Sự kiện nút Get Key
+    // Sự kiện nút Get Key (Đã fix lỗi chặn chuyển link trên mobile)
     document.getElementById("tdz-btn-get").addEventListener("click", () => {
         const statusEl = document.getElementById("tdz-key-status");
         statusEl.style.color = "#eab308";
         statusEl.innerText = "[*] Đang chuyển hướng sang trang lấy Key...";
-        window.open(KEY_CONFIG.getKeyUrl, "_blank");
+        
+        const a = document.createElement('a');
+        a.href = KEY_CONFIG.getKeyUrl;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     });
 
     // Sự kiện kiểm tra Key
