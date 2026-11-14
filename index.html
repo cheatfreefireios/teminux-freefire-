@@ -3,67 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TERMUX SYSTEM // MODULAR</title>
+    <title>TERMINUX VIP CLI - RED EDITION</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- MÀN HÌNH XÁC THỰC KEY -->
-    <div id="key-gate">
-        <div class="key-box">
-            <pre class="ascii-header">
-████████╗███████╗██████╗ ███╗   ███╗██╗   ██╗██╗  ██╗
-╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║   ██║╚██╗██╔╝
-   ██║   █████╗  ██████╔╝██╔████╔██║██║   ██║ ╚███╔╝ 
-   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║   ██║ ██╔██╗ 
-   ██║   ███████╗██║  ██║██║ ╚═╝ ██║╚██████╔╝██╔╝ ██╗
-   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝</pre>
-            <div class="gate-title">SYSTEM AUTHENTICATION</div>
-            <div class="gate-subtitle">Vui lòng vượt link để lấy Key kích hoạt phiên làm việc</div>
-
-            <div class="input-group">
-                <label for="key-input">NHẬP LICENSE KEY:</label>
-                <input type="text" id="key-input" class="key-input" placeholder="Dán mã Key của bạn vào đây..." autocomplete="off">
-            </div>
-
-            <div class="btn-row">
-                <button type="button" class="btn btn-getkey" id="btn-get">GET KEY</button>
-                <button type="button" class="btn btn-login" id="btn-verify">ACCESS</button>
-            </div>
-
-            <div id="key-status"></div>
+<!-- BẢNG NHẬP KEY (ROOTVER) -->
+<div class="modal-overlay" id="rootverModal">
+    <div class="modal-box">
+        <div class="modal-title">[ YÊU CẦU XÁC THỰC KEY ]</div>
+        <div class="modal-content">
+            <p>Menu được tạo bởi <strong>TDZ_9</strong></p>
+            <p>Điện thoại của bạn cần <strong>ROOTVER</strong> để tiếp tục.</p>
+            <p style="color: #66ff99; margin-top: 6px;">TDZ X bedeltaday</p>
+        </div>
+        <div class="admin-form">
+            <input type="text" id="inputUserCode" placeholder="Nhập mã / key bản quyền...">
+            <div id="rootverMsg" style="font-size: 11px; min-height: 15px;"></div>
+            <button class="admin-btn" id="submitUserCodeBtn" style="width: 100%;">XÁC THỰC KEY</button>
+            <button class="getkey-modal-btn" id="getKeyBtn">LẤY KEY (GETKEY)</button>
         </div>
     </div>
+</div>
 
-    <!-- GIAO DIỆN TERMINAL CHÍNH -->
-    <div id="terminal-app">
-        <div class="term-header">
-            <span class="term-title">root@termux-red:~#</span>
-            <span class="status-badge">KEY: ACTIVE</span>
-        </div>
-
-        <div id="terminal-output">
-            <div class="log-line log-red">[SYSTEM] Xác thực thành công! Chào mừng TDZ trở lại.</div>
-            <div class="log-line log-sys">Gõ 'help' để xem danh sách lệnh hoặc chọn nhanh bên dưới.</div>
-            <div class="log-line log-sys">--------------------------------------------------</div>
-        </div>
-
-        <div class="quick-cmds">
-            <button class="cmd-chip" onclick="runCommand('help')">help</button>
-            <button class="cmd-chip" onclick="runCommand('aimbot on')">aimbot on</button>
-            <button class="cmd-chip" onclick="runCommand('headshot 95')">headshot 95</button>
-            <button class="cmd-chip" onclick="runCommand('bypass')">bypass</button>
-            <button class="cmd-chip" onclick="runCommand('clear')">clear</button>
-            <button class="cmd-chip" onclick="logoutKey()">logout</button>
-        </div>
-
-        <div class="input-bar">
-            <span class="prompt-symbol">$</span>
-            <input type="text" id="cmd-input" placeholder="Nhập lệnh..." autocomplete="off">
+<!-- Modal Đăng Nhập Admin (Giữ avatar 3s) -->
+<div class="modal-overlay" id="adminAuthModal" style="display: none;">
+    <div class="modal-box">
+        <div class="modal-title">[ ADMIN LOGIN ]</div>
+        <div class="admin-form">
+            <input type="text" id="adminUser" placeholder="Tên đăng nhập..." autocomplete="off">
+            <input type="password" id="adminPass" placeholder="Mật khẩu...">
+            <div id="authError" class="auth-error"></div>
+            <div class="admin-btn-group">
+                <button class="admin-btn" id="loginBtn">ĐĂNG NHẬP</button>
+                <button class="admin-btn" id="cancelLoginBtn" style="background: #1a1a1a; border-color: #444; color: #aaa;">HỦY</button>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- Nhúng file script.js -->
-    <script src="script.js"></script>
+<!-- Modal Tạo Mã Admin -->
+<div class="modal-overlay" id="adminPanelModal" style="display: none;">
+    <div class="modal-box">
+        <div class="modal-title">[ TẠO MÃ ROOTVER ]</div>
+        <div class="admin-form">
+            <p style="font-size: 11px; color: #aa2222; margin-bottom: 5px;">Tạo và lưu mã mới lên Firebase</p>
+            <input type="text" id="newCodeInput" placeholder="Nhập mã (Ví dụ: teminux-XYZ)...">
+            <div id="adminActionMsg" style="font-size: 11px; word-break: break-all;"></div>
+            <div class="admin-btn-group" style="margin-top: 5px;">
+                <button class="admin-btn" id="saveCodeBtn">TẠO & LƯU</button>
+                <button class="admin-btn" id="closeAdminBtn" style="background: #1a1a1a; border-color: #444; color: #aaa;">ĐÓNG</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avatar Nổi -->
+<div class="floating-avatar" id="avatarTrigger" title="Giữ 3s để mở Admin">
+    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=TDZ_9" alt="Avatar">
+</div>
+
+<!-- Terminal Container -->
+<div class="terminal-container">
+    <div class="terminal-header">
+        <div class="header-left"><span class="status-dot"></span>TERMINUX VIP // RED EDITION</div>
+        <div class="header-right"><span>v4.0.9 [ROOT]</span></div>
+    </div>
+    
+    <div class="terminal-body" id="output">
+        <div class="banner">
+████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗██╗  ██╗
+╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██║  ██║
+   ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║██║  ██║
+   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██║  ██║
+   ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║╚█████╔╝
+   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝ ╚════╝ 
+        </div>
+        <div class="line dim">===================================================</div>
+        <div class="line info">[+] System: Web Terminal Emulation Engine</div>
+        <div class="line info">[+] Status: Secure Socket Initialized</div>
+        <div class="line dim">===================================================</div>
+        <div class="line system">Xác thực key thành công! Gõ <span style="color: var(--border-red); font-weight: bold;">help</span> để xem lệnh.</div>
+        <div class="line dim">---------------------------------------------------</div>
+    </div>
+
+    <div class="input-line">
+        <span class="prompt">root@terminux:~#</span>
+        <input type="text" class="cmd-input" id="cmdInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+</div>
+
+<script type="module" src="script.js"></script>
 </body>
 </html>
