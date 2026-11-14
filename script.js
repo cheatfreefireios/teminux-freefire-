@@ -1,351 +1,157 @@
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js";
-
-const output = document.getElementById('output');
-const input = document.getElementById('cmdInput');
-const noticeModal = document.getElementById('noticeModal');
-const readBtn = document.getElementById('readBtn');
-
-const avatarTrigger = document.getElementById('avatarTrigger');
-const adminAuthModal = document.getElementById('adminAuthModal');
-const adminPanelModal = document.getElementById('adminPanelModal');
-const loginBtn = document.getElementById('loginBtn');
-const cancelLoginBtn = document.getElementById('cancelLoginBtn');
-const closeAdminBtn = document.getElementById('closeAdminBtn');
-const saveCodeBtn = document.getElementById('saveCodeBtn');
-const adminUser = document.getElementById('adminUser');
-const adminPass = document.getElementById('adminPass');
-const authError = document.getElementById('authError');
-const newCodeInput = document.getElementById('newCodeInput');
-const adminActionMsg = document.getElementById('adminActionMsg');
-
-// Các phần tử cho tính năng nhập mã RootVer
-const openRootverBtn = document.getElementById('openRootverBtn');
-const rootverModal = document.getElementById('rootverModal');
-const inputUserCode = document.getElementById('inputUserCode');
-const submitUserCodeBtn = document.getElementById('submitUserCodeBtn');
-const closeRootverModalBtn = document.getElementById('closeRootverModalBtn');
-const rootverMsg = document.getElementById('rootverMsg');
-
-let isProcessing = false;
-let isRootVerActivated = false;
-
-// SỬA LỖI TẠI ĐÂY: Thêm lệnh ẩn modal thông báo
-readBtn.addEventListener('click', () => {
-    noticeModal.style.display = 'none'; // Ẩn bảng thông báo
-    input.focus(); // Đưa con trỏ chuột về ô nhập lệnh
-});
-
-// Mở bảng nhập mã RootVer khi ấn nút
-openRootverBtn.addEventListener('click', () => {
-    rootverModal.style.display = 'flex';
-    inputUserCode.value = '';
-    rootverMsg.innerText = '';
-});
-
-closeRootverModalBtn.addEventListener('click', () => {
-    rootverModal.style.display = 'none';
-    input.focus();
-});
-
-// Xử lý xác thực mã người dùng nhập với Firebase Server
-submitUserCodeBtn.addEventListener('click', async () => {
-    const code = inputUserCode.value.trim();
-    if (!code) {
-        rootverMsg.style.color = '#ff3333';
-        rootverMsg.innerText = 'Vui lòng nhập mã!';
-        return;
-    }
-
-    rootverMsg.style.color = '#ffaa33';
-    rootverMsg.innerText = 'Đang kiểm tra mã trên máy chủ...';
-
-    try {
-        const dbRef = ref(window.dbRef);
-        const snapshot = await get(child(dbRef, 'rootver_codes/' + code));
-        
-        if (snapshot.exists()) {
-            isRootVerActivated = true;
-            rootverMsg.style.color = '#33ff77';
-            rootverMsg.innerText = 'Kích hoạt ROOTVER thành công!';
-            setTimeout(() => {
-                rootverModal.style.display = 'none';
-                printLine(`<span class="line success">[✓] ROOTVER VERIFICATION: THÀNH CÔNG (SUCCESS)</span>`);
-                input.focus();
-            }, 1000);
-        } else {
-            rootverMsg.style.color = '#ff3333';
-            rootverMsg.innerText = 'Mã không tồn tại hoặc không hợp lệ!';
-        }
-    } catch (error) {
-        rootverMsg.style.color = '#ff3333';
-        rootverMsg.innerText = 'Lỗi kết nối máy chủ!';
-    }
-});
-
-// Kéo thả & Giữ 3s mở Admin qua Avatar
-let pressTimer = null;
-let isDragging = false;
-let startX = 0, startY = 0;
-let initialX = 0, initialY = 0;
-let hasMoved = false;
-
-function handleStart(e) {
-    isDragging = true;
-    hasMoved = false;
-    const event = e.touches ? e.touches[0] : e;
-    startX = event.clientX;
-    startY = event.clientY;
-
-    const rect = avatarTrigger.getBoundingClientRect();
-    initialX = rect.left;
-    initialY = rect.top;
-
-    pressTimer = setTimeout(() => {
-        if (!hasMoved) {
-            adminAuthModal.style.display = 'flex';
-            adminUser.value = '';
-            adminPass.value = '';
-            authError.innerText = '';
-        }
-    }, 3000);
-}
-
-function handleMove(e) {
-    if (!isDragging) return;
-    const event = e.touches ? e.touches[0] : e;
-    const dx = event.clientX - startX;
-    const dy = event.clientY - startY;
-
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-        hasMoved = true;
-        clearTimeout(pressTimer);
-    }
-
-    if (hasMoved) {
-        let newX = initialX + dx;
-        let newY = initialY + dy;
-        const maxX = window.innerWidth - avatarTrigger.offsetWidth;
-        const maxY = window.innerHeight - avatarTrigger.offsetHeight;
-        newX = Math.max(0, Math.min(newX, maxX));
-        newY = Math.max(0, Math.min(newY, maxY));
-        avatarTrigger.style.left = `${newX}px`;
-        avatarTrigger.style.top = `${newY}px`;
-        avatarTrigger.style.right = 'auto';
-    }
-}
-
-function handleEnd() {
-    isDragging = false;
-    clearTimeout(pressTimer);
-}
-
-avatarTrigger.addEventListener('mousedown', handleStart);
-window.addEventListener('mousemove', handleMove);
-window.addEventListener('mouseup', handleEnd);
-avatarTrigger.addEventListener('touchstart', handleStart, { passive: false });
-window.addEventListener('touchmove', handleMove, { passive: false });
-window.addEventListener('touchend', handleEnd);
-
-// Đăng nhập Admin
-loginBtn.addEventListener('click', () => {
-    if (adminUser.value.trim() === 'TDZADMIN' && adminPass.value.trim() === 'TDZ2013@') {
-        adminAuthModal.style.display = 'none';
-        adminPanelModal.style.display = 'flex';
-        adminActionMsg.innerText = '';
-    } else {
-        authError.innerText = 'Sai tài khoản hoặc mật khẩu!';
-    }
-});
-
-cancelLoginBtn.addEventListener('click', () => { adminAuthModal.style.display = 'none'; input.focus(); });
-closeAdminBtn.addEventListener('click', () => { adminPanelModal.style.display = 'none'; input.focus(); });
-
-// Tạo và Lưu mã lên Máy chủ Firebase
-saveCodeBtn.addEventListener('click', async () => {
-    const code = newCodeInput.value.trim();
-    if (!code) {
-        adminActionMsg.style.color = '#ff3333';
-        adminActionMsg.innerText = 'Vui lòng nhập mã cần tạo!';
-        return;
-    }
-
-    adminActionMsg.style.color = '#ffaa33';
-    adminActionMsg.innerText = 'Đang lưu mã lên máy chủ...';
-
-    try {
-        await set(ref(window.dbRef, 'rootver_codes/' + code), {
-            created_at: new Date().toISOString(),
-            status: 'active'
-        });
-        adminActionMsg.style.color = '#33ff77';
-        adminActionMsg.innerText = `Đã tạo và lưu mã [${code}] lên server thành công!`;
-        newCodeInput.value = '';
-    } catch (error) {
-        adminActionMsg.style.color = '#ff3333';
-        adminActionMsg.innerText = 'Lỗi lưu mã: ' + error.message;
-    }
-});
-
-// Các lệnh Terminal
-const commands = {
-    'help': `
-<div class="help-box">
-    <div class="line system" style="margin-bottom: 6px; border-bottom: 1px solid var(--text-muted); padding-bottom: 4px;">DANH SÁCH LỆNH HỆ THỐNG VIP:</div>
-    <div class="help-row"><span class="help-cmd">help</span><span class="help-desc">: Xem bảng danh sách lệnh</span></div>
-    <div class="help-row"><span class="help-cmd">clear</span><span class="help-desc">: Làm sạch màn hình terminal</span></div>
-    <div class="help-row"><span class="help-cmd">scan</span><span class="help-desc">: Quét bộ nhớ RAM & tiến trình game</span></div>
-    <div class="help-row"><span class="help-cmd">inject</span><span class="help-desc">: Chạy nạp payload vào trò chơi</span></div>
-    <div class="help-row"><span class="help-cmd">aimbot</span><span class="help-desc">: Bật tính năng khóa mục tiêu</span></div>
-    <div class="help-row"><span class="help-cmd">headshot</span><span class="help-desc">: Đẩy tỉ lệ trúng đầu tối đa</span></div>
-    <div class="help-row"><span class="help-cmd">antenna</span><span class="help-desc">: Hiển thị đường sóng định vị ESP</span></div>
-    <div class="help-row"><span class="help-cmd">bypass</span><span class="help-desc">: Kích hoạt lớp chống khóa hệ thống</span></div>
-    <div class="help-row"><span class="help-cmd">rootver</span><span class="help-desc">: Kiểm tra trạng thái ROOT thiết bị</span></div>
-    <div class="help-row"><span class="help-cmd">status</span><span class="help-desc">: Kiểm tra kết nối & bản quyền</span></div>
-</div>
-`,
-    'status': `
-<span class="line info">[SYSTEM STATUS]</span>
-  - Security Guard : <span class="line success">BYPASSED</span>
-  - Memory Offset  : <span class="line success">READY (0x7F)</span>
-  - Latency        : <span class="line info">12ms</span>
-  - License Status : <span class="line success">VIP LIFETIME</span>
-`
+// ==========================================
+// 1. CẤU HÌNH HỆ THỐNG KEY & GIAO DIỆN
+// ==========================================
+const KEY_CONFIG = {
+    getKeyUrl: "https://bbmkts.com/ql?token=e3ed5e88fefd828697e1c0db&longurl=https://thinhkk999.github.io/getkey/",
+    validKeys: ["TDZ-VIP-2026", "TERMUX-FREE-999", "THINH999"],
+    keyPrefix: "TDZ-",
+    expireHours: 24
 };
 
-input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        const cmd = input.value.trim().toLowerCase();
-        if (cmd === '' || isProcessing) return;
-
-        printLine(`<span class="prompt">root@terminux:~#</span> <span class="line cmd">${escapeHtml(input.value)}</span>`);
-        input.value = '';
-
-        handleCommand(cmd);
+// Tự động chèn CSS cho màn hình Key vào trang
+const keyStyle = document.createElement("style");
+keyStyle.innerHTML = `
+    #tdz-key-gate {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(circle at center, #1a0808 0%, #09090b 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 999999;
+        font-family: 'Courier New', Courier, monospace;
+        user-select: none;
     }
-});
+    .tdz-key-box {
+        width: 100%;
+        max-width: 400px;
+        background: #121215;
+        border: 1px solid #ef4444;
+        box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        color: #f4f4f5;
+    }
+    .tdz-ascii {
+        color: #ef4444;
+        font-size: 9px;
+        line-height: 1.2;
+        margin-bottom: 16px;
+        font-weight: bold;
+        text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        overflow-x: hidden;
+    }
+    .tdz-title { font-size: 18px; font-weight: bold; letter-spacing: 2px; color: #fff; margin-bottom: 6px; }
+    .tdz-subtitle { font-size: 12px; color: #a1a1aa; margin-bottom: 20px; }
+    .tdz-input-group { margin-bottom: 16px; text-align: left; }
+    .tdz-input-group label { display: block; font-size: 11px; color: #ef4444; margin-bottom: 6px; font-weight: bold; }
+    .tdz-key-input {
+        width: 100%; box-sizing: border-box; background: #050505; border: 1px solid #27272a;
+        color: #fff; padding: 12px; border-radius: 6px; font-size: 14px; font-family: inherit; outline: none;
+    }
+    .tdz-key-input:focus { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+    .tdz-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tdz-btn {
+        padding: 12px; border-radius: 6px; font-weight: bold; font-size: 13px; font-family: inherit;
+        cursor: pointer; border: none; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s;
+    }
+    .tdz-btn-getkey { background: transparent; border: 1px solid #ef4444; color: #ef4444; }
+    .tdz-btn-getkey:hover { background: rgba(239, 68, 68, 0.15); }
+    .tdz-btn-login { background: #ef4444; color: #fff; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+    #tdz-key-status { margin-top: 14px; font-size: 12px; min-height: 18px; }
+`;
+document.head.appendChild(keyStyle);
 
-function escapeHtml(text) {
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function printLine(htmlText) {
-    const div = document.createElement('div');
-    div.className = 'line';
-    div.innerHTML = htmlText;
-    output.appendChild(div);
-    output.scrollTop = output.scrollHeight;
-}
-
-function handleCommand(cmd) {
-    if (cmd === 'clear') {
-        output.innerHTML = '';
+// ==========================================
+// 2. KHỞI TẠO & KIỂM TRA PHIÊN ĐĂNG NHẬP
+// ==========================================
+function initAppAuth() {
+    const savedAuth = localStorage.getItem("termux_auth_time");
+    if (savedAuth && (Date.now() - parseInt(savedAuth) < KEY_CONFIG.expireHours * 3600000)) {
+        // Đã xác thực -> Chạy trực tiếp app chính
+        startTermuxApp();
         return;
     }
 
-    if (commands[cmd]) {
-        printLine(commands[cmd]);
-        return;
-    }
+    // Chưa xác thực -> Hiện bảng nhập Key
+    const gateHTML = `
+        <div id="tdz-key-gate">
+            <div class="tdz-key-box">
+                <pre class="tdz-ascii">
+████████╗███████╗██████╗ ███╗   ███╗██╗   ██╗██╗  ██╗
+╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║   ██║╚██╗██╔╝
+   ██║   █████╗  ██████╔╝██╔████╔██║██║   ██║ ╚███╔╝ 
+   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║   ██║ ██╔██╗ 
+   ██║   ███████╗██║  ██║██║ ╚═╝ ██║╚██████╔╝██╔╝ ██╗
+   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝</pre>
+                <div class="tdz-title">SYSTEM AUTHENTICATION</div>
+                <div class="tdz-subtitle">Vui lòng vượt link để lấy Key kích hoạt phiên làm việc</div>
 
-    switch(cmd) {
-        case 'scan':
-            runScanSequence();
-            break;
-        case 'inject':
-            runInjectSequence();
-            break;
-        case 'aimbot':
-            runToggleScript('AIMBOT LOCK 100%', '0x7FFF90A1');
-            break;
-        case 'headshot':
-            runToggleScript('HEADSHOT RATE 99.9%', '0x8A00F210');
-            break;
-        case 'antenna':
-            runToggleScript('ESP ANTENNA LOCATION', '0x12FF08B4');
-            break;
-        case 'bypass':
-            runBypassSequence();
-            break;
-        case 'rootver':
-            runRootVerCheck();
-            break;
-        default:
-            printLine(`<span class="line dim">bash: ${escapeHtml(cmd)}: command not found. Gõ 'help' để xem danh sách lệnh.</span>`);
-    }
-}
+                <div class="tdz-input-group">
+                    <label for="tdz-key-input">NHẬP LICENSE KEY:</label>
+                    <input type="text" id="tdz-key-input" class="tdz-key-input" placeholder="Dán mã Key..." autocomplete="off">
+                </div>
 
-function runRootVerCheck() {
-    isProcessing = true;
-    printLine(`<span class="line info">[+] Đang kiểm tra xác minh ROOTVER thiết bị...</span>`);
+                <div class="tdz-btn-row">
+                    <button type="button" id="tdz-btn-get" class="tdz-btn tdz-btn-getkey">GET KEY</button>
+                    <button type="button" id="tdz-btn-verify" class="tdz-btn tdz-btn-login">ACCESS</button>
+                </div>
 
-    setTimeout(() => {
-        if (isRootVerActivated) {
-            printLine(`<span class="line success">[✓] ROOTVER VERIFICATION: THÀNH CÔNG (SUCCESS)</span>`);
-            printLine(`<span class="line success">[+] Thiết bị đã được cấp quyền ROOT hợp lệ!</span>`);
-        } else {
-            printLine(`<span class="line dim" style="color: #ff3333;">[X] LỖI: Điện thoại của bạn không thể sử dụng mà không ROOTVER!</span>`);
-            printLine(`<span class="line info">[i] Bấm nút 'KEY ROOTVER' góc dưới màn hình hoặc tương tác Telegram để nhập mã.</span>`);
+                <div id="tdz-key-status"></div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML("beforeend", gateHTML);
+
+    // Sự kiện nút Get Key
+    document.getElementById("tdz-btn-get").addEventListener("click", () => {
+        const statusEl = document.getElementById("tdz-key-status");
+        statusEl.style.color = "#eab308";
+        statusEl.innerText = "[*] Đang chuyển hướng sang trang lấy Key...";
+        window.open(KEY_CONFIG.getKeyUrl, "_blank");
+    });
+
+    // Sự kiện kiểm tra Key
+    const verifyAction = () => {
+        const val = document.getElementById("tdz-key-input").value.trim();
+        const statusEl = document.getElementById("tdz-key-status");
+
+        if (!val) {
+            statusEl.style.color = "#ef4444";
+            statusEl.innerText = "[!] Vui lòng nhập Key trước.";
+            return;
         }
-        isProcessing = false;
-    }, 800);
-}
 
-function runToggleScript(name, memAddr) {
-    isProcessing = true;
-    printLine(`<span class="line info">[+] Đang kích hoạt: ${name}...</span>`);
-    setTimeout(() => { printLine(`<span class="line dim">[>] Ghi đè địa chỉ bộ nhớ ${memAddr}...</span>`); }, 350);
-    setTimeout(() => {
-        printLine(`<span class="line success">[✓] THÀNH CÔNG: ${name} [ACTIVE]</span>`);
-        isProcessing = false;
-    }, 800);
-}
+        if (KEY_CONFIG.validKeys.includes(val) || (KEY_CONFIG.keyPrefix && val.startsWith(KEY_CONFIG.keyPrefix))) {
+            statusEl.style.color = "#22c55e";
+            statusEl.innerText = "[✓] Thành công! Đang khởi động...";
+            localStorage.setItem("termux_auth_time", Date.now().toString());
+            setTimeout(() => {
+                document.getElementById("tdz-key-gate").remove();
+                startTermuxApp();
+            }, 500);
+        } else {
+            statusEl.style.color = "#ef4444";
+            statusEl.innerText = "[X] Key không chính xác!";
+        }
+    };
 
-function runScanSequence() {
-    isProcessing = true;
-    printLine(`<span class="line info">[+] Đang quét tiến trình hệ thống...</span>`);
-    const steps = [
-        `[1/3] Quét PID tiến trình... <span class="line success">FOUND (PID: 8841)</span>`,
-        `[2/3] Đọc offset Framework... <span class="line success">OK</span>`,
-        `[3/3] Đã phát hiện 50 mục tiêu trong phạm vi!`
-    ];
-    steps.forEach((step, index) => {
-        setTimeout(() => {
-            printLine(`<span class="line dim">${step}</span>`);
-            if (index === steps.length - 1) isProcessing = false;
-        }, (index + 1) * 450);
+    document.getElementById("tdz-btn-verify").addEventListener("click", verifyAction);
+    document.getElementById("tdz-key-input").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") verifyAction();
     });
 }
 
-function runBypassSequence() {
-    isProcessing = true;
-    printLine(`<span class="line info">[+] Đang bypass cơ chế Anti-Cheat...</span>`);
-    setTimeout(() => printLine(`<span class="line dim">[>] Xóa logs hệ thống...</span>`), 300);
-    setTimeout(() => printLine(`<span class="line dim">[>] Chặn gói tin gởi về Server...</span>`), 700);
-    setTimeout(() => {
-        printLine(`<span class="line success">[✓] ANTI-BAN ACTIVATED - SAFE 100%</span>`);
-        isProcessing = false;
-    }, 1200);
+// ==========================================
+// 3. LOGIC CHÍNH CỦA TERMINAL (script.js)
+// ==========================================
+function startTermuxApp() {
+    console.log("Termux Script Initialized!");
+    
+    // Đặt toàn bộ code xử lý lệnh, giao diện terminal của bạn vào đây...
 }
 
-function runInjectSequence() {
-    isProcessing = true;
-    printLine(`<span class="line info">[+] Đang inject Payload...</span>`);
-    const progressDiv = document.createElement('div');
-    progressDiv.className = 'progress-box';
-    output.appendChild(progressDiv);
-
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += 10;
-        const blocks = '█'.repeat(progress / 10);
-        const spaces = ' '.repeat(10 - (progress / 10));
-        progressDiv.innerHTML = `<span class="line info">Injecting: [${blocks}${spaces}] ${progress}%</span>`;
-        output.scrollTop = output.scrollHeight;
-
-        if (progress >= 100) {
-            clearInterval(interval);
-            printLine(`<span class="line success">[✓] INJECT SUCCESSFUL! VIP MENU đã sẵn sàng.</span>`);
-            isProcessing = false;
-        }
-    }, 120);
-}
+// Tự động kích hoạt hệ thống check key khi script.js được tải
+initAppAuth();
